@@ -42,4 +42,4 @@ ENTRYPOINT ["dumb-init", "--"]
 
 # CMD ["/usr/local/share/.config/yarn/global/node_modules/puppeteer/.local-chromium/linux-526987/chrome-linux/chrome"]
 
-CMD ["node", "index.js"]
+# CMD ["node", "index.js"]
