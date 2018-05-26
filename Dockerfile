@@ -15,26 +15,19 @@ RUN yarn global add puppeteer@1.3.0 && yarn cache clean
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
-ENV PATH="/tools:${PATH}"
-
-ADD ./tools /tools
-
-RUN chmod +x /tools/* && mkdir /screenshots
-
 # Advanced node process manager
 # @see http://pm2.keymetrics.io/
-RUN npm install -g pm2
+RUN yarn global add pm2
+# RUN npm install -g pm2
 
 WORKDIR /app
 
-# Add user so we don't need --no-sandbox.
+# Add user (so we don't need --no-sandbox...?)
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-    && mkdir -p /home/pptruser/Downloads \
+    && mkdir -p /home/pptruser \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
-    && chown -R pptruser:pptruser /screenshots \
-    && chown -R pptruser:pptruser /app \
-    && chown -R pptruser:pptruser /tools
+    && chown -R pptruser:pptruser /app
 
 COPY . /app
 
@@ -45,4 +38,5 @@ USER pptruser
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["pm2", "start", "pm2.config.js", "--no-daemon"]
+# CMD ["pm2", "start", "pm2.config.js", "--no-daemon"]
+CMD ["./pm2.start.sh", "--no-daemon"]

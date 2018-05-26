@@ -1,16 +1,31 @@
 const puppeteer = require('puppeteer');
 const EventEmitter = require('events');
 
-const IS_JAVASCRIPT_ENABLED = true;
+const DEFAULT_IS_JAVASCRIPT_ENABLED = true;
 
 class Puppeteer {
-    constructor(url) {
+    constructor(url, options) {
         this._url = url;
 
+        if (typeof options !== 'object') {
+            options = {};
+        }
+        this._options = options;
+        this._options.isJavaScriptEnabled = (function(options){
+            let isJavaScriptEnabled;
+            
+            if (typeof options.isJavaScriptEnabled === 'undefined') {
+                isJavaScriptEnabled = DEFAULT_IS_JAVASCRIPT_ENABLED;
+            } else {
+                // Convert to boolean
+                isJavaScriptEnabled = (options.isJavaScriptEnabled ? true : false);
+            }
+
+            return isJavaScriptEnabled;
+        })(options);
+
         this._events = new EventEmitter();
-
         this._browser;
-
     }
 
     on(eventName, listener) {
@@ -48,7 +63,7 @@ class Puppeteer {
                     return;
                 }
         
-                page.setJavaScriptEnabled(IS_JAVASCRIPT_ENABLED);
+                page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
             
                 // Bind page events
                 page.once('load', () => {
