@@ -11,9 +11,14 @@ wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_
 dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb && \
 apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
+# Install latest Yarn
+# RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
+
 RUN yarn global add \
     puppeteer@1.4.0 \
     pm2 \
+    webpack \
+    webpack-cli \
     && yarn cache clean
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
@@ -21,18 +26,22 @@ ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 WORKDIR /app
 
 # Add user so we don't need --no-sandbox
-RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-    && mkdir -p /home/pptruser \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
-    && chown -R pptruser:pptruser /app
+# RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+#    && mkdir -p /home/pptruser \
+#    && chown -R pptruser:pptruser /home/pptruser \
+#    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
+#    && chown -R pptruser:pptruser /app
 
 COPY . /app
 
+RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
+    && yarn link \
+    && cd /app && yarn link puppeteer
+
 RUN yarn install
 
-# Run everything after as non-privileged user.
-USER pptruser
+# Run everything after as non-privileged user
+# USER pptruser
 
 ENTRYPOINT ["dumb-init", "--"]
 

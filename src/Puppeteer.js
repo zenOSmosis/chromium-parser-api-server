@@ -1,11 +1,14 @@
 // TODO: Implement incognito mode
 // TODO: Stop sending x-devtools-emulate-network-conditions-client-id header
 
-const puppeteer = require('puppeteer');
-const EventEmitter = require('events');
+import puppeteer from 'puppeteer';
+import EventEmitter from 'events';
 
 const DEFAULT_IS_JAVASCRIPT_ENABLED = true;
 
+/**
+ * Note: This class interfaces directly with the backend Chrome/Chromium engine.
+ */
 class Puppeteer {
     constructor(url, options) {
         this._url = url;
@@ -36,13 +39,14 @@ class Puppeteer {
     }
 
     fetch() {
+
         (async (self) => {
             // @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerdefaultargs
             self._browser = await puppeteer.launch({
                 // Note: --cap-add=SYS_ADMIN must be enabled for this container to run without a sandbox
                 args: [
-                    // '--no-sandbox',
-                    // '--disable-setuid-sandbox'
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
                 ],
                 ignoreHTTPSErrors: true, // Whether to ignore HTTPS errors during navigation. Defaults to false.
                 headless: true, // Whether to run browser in headless mode. Defaults to true unless the devtools option is true.
@@ -154,4 +158,5 @@ class Puppeteer {
     }
 }
 
-exports.Puppeteer = Puppeteer;
+// exports.Puppeteer = Puppeteer;
+export default Puppeteer;

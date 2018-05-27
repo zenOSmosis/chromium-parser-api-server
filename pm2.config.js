@@ -4,7 +4,7 @@
 module.exports = {
     apps: [{
         name: "puppeteer-app",
-        script: "./src/index.js",
+        script: "./build/bundle.js",
         watch: true,
         ignore_watch: ["node_modules", ".git"],
         no_daemon: true
