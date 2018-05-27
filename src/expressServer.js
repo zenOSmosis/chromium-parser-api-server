@@ -2,6 +2,27 @@ const express = require('express');
 const expressServer = express();
 const { Puppeteer } = require('./Puppeteer');
 
+var _toBoolean = (value) => {
+    if (value == 1 || value == true) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+var _getIsJavaScriptEnabled = (query) => {
+    const defaultValue = true;
+
+    if (typeof query['jsEnabled'] === 'undefined') {
+        query['jsEnabled'] = defaultValue;
+    }
+
+    // Convert to boolean
+    query['jsEnabled'] = _toBoolean(query['jsEnabled']);
+
+    return query['jsEnabled'];
+};
+
 expressServer.get('/', (req, res) => {
     var url;
 
@@ -9,7 +30,7 @@ expressServer.get('/', (req, res) => {
         res.send('Ready');
     } else {
         const puppeteer = new Puppeteer(url, {
-            isJavaScriptEnabled: true
+            isJavaScriptEnabled: _getIsJavaScriptEnabled(req.query)
         });
         
         var isPassedToContentParser;
@@ -35,6 +56,8 @@ expressServer.get('/', (req, res) => {
         puppeteer.on('page-source', (html) => {
             // console.log(resp);
             res.send(html);
+
+            puppeteer.terminate();
         });
 
         puppeteer.fetch();

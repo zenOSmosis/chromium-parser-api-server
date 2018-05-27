@@ -1,5 +1,5 @@
 // TODO: Implement incognito mode
-// TODO: Implement ability to stop sending x-devtools-emulate-network-conditions-client-id
+// TODO: Stop sending x-devtools-emulate-network-conditions-client-id header
 
 const puppeteer = require('puppeteer');
 const EventEmitter = require('events');
@@ -77,12 +77,23 @@ class Puppeteer {
                     console.log('Page loaded!')
                 });
                 page.on('request', (request) => {
-                    console.log({
+                    console.log('REQUEST', {
                         url: request.url(),
-                        headers: request.headers()
+                        method: request.method(),
+                        headers: request.headers(),
+                        postData: request.postData(),
+                        resourceType: request.resourceType()
                     });
-        
-                    console.log('\n');
+                });
+                page.on('response', (response) => {
+                    console.log('RESPONSE', {
+                        url: response.url(),
+                        isCached: response.fromCache(), // True if the response was served from either the browser's disk cache or memory cache.
+                        isFromServiceWorker: response.fromServiceWorker(),
+                        headers: response.headers(),
+                        isSuccess: response.ok(), // Whether the response was successful (status in the range 200-299) or not.
+                        statusCode: response.status()
+                    });
                 });
                 page.once('close', () => {
                     console.log('Page closed!')
