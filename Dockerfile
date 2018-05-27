@@ -12,7 +12,7 @@ dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb && \
 apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 RUN yarn global add \
-    puppeteer@1.3.0 \
+    puppeteer@1.4.0 \
     pm2 \
     && yarn cache clean
 
