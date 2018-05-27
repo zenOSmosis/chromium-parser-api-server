@@ -1,0 +1,9 @@
+version: '3.1'
+
+services:
+  proxy:
+    build: https://github.com/zenOSmosis/docker-chromium-simple-proxy.git
+    cap_add:
+      - "SYS_ADMIN"
+    ports:
+      - 8080:8080

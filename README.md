@@ -2,22 +2,30 @@
 
 A simple GET proxy based on Docker, Chromium, [Google Puppeteer](https://github.com/GoogleChrome/puppeteer), Node.js, and Express.
 
+## Building
 
-## Installation
-1. Clone this repo
+### Without Docker Compose
 ```
-git clone https://github.com/zenOSmosis/docker-chromium-simple-proxy
-```
-
-2. Build the Docker container
-```
-cd docker-chromium-simple-proxy
 docker build -t zenosmosis/docker-chromium-simple-proxy .
 ```
 
-3. Run the Docker container
+### With Docker Compose
+```
+docker-compose build
+```
+
+## Running
+
+### Without Docker Compose
+
 ```
 docker run -p 8080:8080 --cap-add=SYS_ADMIN zenosmosis/docker-chromium-simple-proxy
+```
+
+### With Docker Compose
+
+```
+docker-compose up
 ```
 
 ## Usage Example
