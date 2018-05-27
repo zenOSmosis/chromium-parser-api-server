@@ -1,8 +1,6 @@
-// const express = require('express');
 import express from 'express';
 const expressServer = express();
-// const { Puppeteer } = require('./Puppeteer');
-import Puppeteer from './Puppeteer';
+import { Puppeteer } from './Puppeteer';
 
 var _toBoolean = (value) => {
     if (value == 1 || value == true) {
@@ -66,5 +64,4 @@ expressServer.get('/', (req, res) => {
     }
 });
 
-// exports.expressServer = expressServer;
 export default expressServer;
