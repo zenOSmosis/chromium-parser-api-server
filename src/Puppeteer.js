@@ -1,3 +1,6 @@
+// TODO: Implement incognito mode
+// TODO: Implement ability to stop sending x-devtools-emulate-network-conditions-client-id
+
 const puppeteer = require('puppeteer');
 const EventEmitter = require('events');
 
@@ -36,9 +39,10 @@ class Puppeteer {
         (async (self) => {
             // @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerdefaultargs
             self._browser = await puppeteer.launch({
+                // Note: --cap-add=SYS_ADMIN must be enabled for this container to run without a sandbox
                 args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox'
+                    // '--no-sandbox',
+                    // '--disable-setuid-sandbox'
                 ],
                 ignoreHTTPSErrors: true, // Whether to ignore HTTPS errors during navigation. Defaults to false.
                 headless: true, // Whether to run browser in headless mode. Defaults to true unless the devtools option is true.
@@ -62,6 +66,8 @@ class Puppeteer {
                     self.terminate();
                     return;
                 }
+
+                page.setRequestInterception(false);
         
                 page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
                 console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
@@ -97,9 +103,9 @@ class Puppeteer {
                     // Get the "viewport" of the page, as reported by the page.
                     evaluationData = await page.evaluate(() => {
                         return {
-                            width: document.documentElement.clientWidth,
-                            height: document.documentElement.clientHeight,
-                            deviceScaleFactor: window.devicePixelRatio,
+                            // width: document.documentElement.clientWidth,
+                            // height: document.documentElement.clientHeight,
+                            // deviceScaleFactor: window.devicePixelRatio,
                             pageSource: document.documentElement.outerHTML
                         };
                     });
@@ -121,6 +127,10 @@ class Puppeteer {
         })(this);
     }
 
+    /**
+     * Closes Chromium and all of its pages (if any were opened).
+     * The Browser object itself is considered to be disposed and cannot be used anymore.
+     */
     terminate() {
         if (!this._browser) {
             console.error('Browser is not set');
