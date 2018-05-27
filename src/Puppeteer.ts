@@ -4,37 +4,32 @@
 import puppeteer from 'puppeteer';
 import EventEmitter from 'events';
 
-const DEFAULT_IS_JAVASCRIPT_ENABLED = true;
+interface IPuppeteerOptions {
+    isJavaScriptEnabled: boolean;
+}
 
 /**
  * Note: This class interfaces directly with the backend Chrome/Chromium engine.
  */
 class Puppeteer {
-    constructor(url, options) {
+    protected _url: string;
+    protected _events: EventEmitter;
+    protected _options: IPuppeteerOptions = {
+        isJavaScriptEnabled: true // Set JavaScript enabled to be true, by default
+    };
+    protected _browser: any;
+
+    constructor(url: string, options?: IPuppeteerOptions) {
         this._url = url;
 
-        if (typeof options !== 'object') {
-            options = {};
+        if (typeof options !== 'undefined') {
+            this._options = options;
         }
-        this._options = options;
-        this._options.isJavaScriptEnabled = (function(options){
-            let isJavaScriptEnabled;
-
-            if (typeof options.isJavaScriptEnabled === 'undefined') {
-                isJavaScriptEnabled = DEFAULT_IS_JAVASCRIPT_ENABLED;
-            } else {
-                // Convert to boolean
-                isJavaScriptEnabled = (options.isJavaScriptEnabled ? true : false);
-            }
-
-            return isJavaScriptEnabled;
-        })(options);
 
         this._events = new EventEmitter();
-        this._browser;
     }
 
-    on(eventName, listener) {
+    on(eventName: string, listener: () => void) {
         return this._events.on(eventName, listener);
     }
 
@@ -78,7 +73,7 @@ class Puppeteer {
             
                 // Bind page events
                 page.once('load', () => {
-                    console.log('Page loaded!')
+                    console.log('Page loaded!');
                 });
                 page.on('request', (request) => {
                     console.log('REQUEST', {
@@ -100,7 +95,7 @@ class Puppeteer {
                     });
                 });
                 page.once('close', () => {
-                    console.log('Page closed!')
+                    console.log('Page closed!');
                 });
                 
                 try {
@@ -113,6 +108,7 @@ class Puppeteer {
                 }
         
                 let evaluationData;
+                let document: any;
         
                 try {
                     // Get the "viewport" of the page, as reported by the page.
