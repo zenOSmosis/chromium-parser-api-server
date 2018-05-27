@@ -1,5 +1,4 @@
 const nodeExternals = require('webpack-node-externals');
-// const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 // var webpack = require('webpack');
 // var HappyPack = require('happypack');
 
@@ -43,21 +42,8 @@ module.exports = {
                     {
                         loader: "tslint-loader"
                     }
-                ] //,
-                /* options: {
-                    // disable type checker - we will use it in fork plugin
-                    transpileOnly: true
-                }*/
+                ]
             },
-
-           /* {
-                test: /\.tsx?$/,
-                loader: 'ts-loader',
-                options: {
-                    // disable type checker - we will use it in fork plugin
-                    transpileOnly: true 
-                }
-            },*/
 
             /*{
                 test: /\.tsx?$/,
@@ -86,8 +72,6 @@ module.exports = {
                 }
             ]
         }),*/
-
-        // new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
 
         /*new webpack.WatchIgnorePlugin([
             /node_modules/, /public/, /git_modules/
