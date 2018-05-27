@@ -12,7 +12,7 @@ git clone https://github.com/zenOSmosis/docker-chromium-simple-proxy
 2. Build the Docker container
 ```
 cd docker-chromium-simple-proxy
-docker build -t zenosmosis/puppeteer .
+docker build -t zenosmosis/docker-chromium-simple-proxy .
 ```
 
 3. Run the Docker container
@@ -38,12 +38,12 @@ If you wish to launch the container to develop in, while automatically mounting 
 - if you got page crash with `BUS_ADRERR` ([chromium issue](https://bugs.chromium.org/p/chromium/issues/detail?id=571394)), increase shm-size on docker run with `--shm-size` argument
 
 ```bash
-docker run --shm-size 1G --rm -v <path_to_script>:/app/index.js zenosmosis/puppeteer
+docker run --shm-size 1G --rm -v <path_to_script>:/app/index.js zenosmosis/docker-chromium-simple-proxy
 ```
 
 - If you're seeing random navigation errors (unreachable url) it's likely due to ipv6 being enabled in docker. Navigation errors are caused by ERR_NETWORK_CHANGED (-21) in chromium. Disable ipv6 in your container using `--sysctl net.ipv6.conf.all.disable_ipv6=1` to fix:
 ```bash
-docker run --shm-size 1G --sysctl net.ipv6.conf.all.disable_ipv6=1 --rm zenosmosis/puppeteer
+docker run --shm-size 1G --sysctl net.ipv6.conf.all.disable_ipv6=1 --rm zenosmosis/docker-chromium-simple-proxy
 ```
 
 - add `--enable-logging` for chrome debug logging http://www.chromium.org/for-testers/enable-logging
