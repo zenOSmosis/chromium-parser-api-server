@@ -1,4 +1,5 @@
-// const { expressServer } = require('./expressServer');
 import expressServer from './expressServer';
 
-expressServer.listen(8080);
+const API_PORT = process.env.HTTP_API_PORT || 8080;
+
+expressServer.listen(HTTP_API_PORT);

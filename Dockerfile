@@ -46,6 +46,8 @@ RUN yarn install \
 # Run everything after as non-privileged user
 USER pptruser
 
+ENV HTTP_API_PORT=8080
+
 ENTRYPOINT ["dumb-init", "--"]
 
 CMD ["./pm2.start.sh", "--no-daemon"]
