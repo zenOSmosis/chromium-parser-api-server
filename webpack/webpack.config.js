@@ -1,6 +1,4 @@
 const nodeExternals = require('webpack-node-externals');
-// var webpack = require('webpack');
-// var HappyPack = require('happypack');
 
 module.exports = {
     /*optimization: {
@@ -45,38 +43,10 @@ module.exports = {
                 ]
             },
 
-            /*{
-                test: /\.tsx?$/,
-                exclude: /node_modules/,
-                loader: 'happypack/loader?id=ts',
-            },*/
-
-            /*{
-                test: /\.tsx?$/,
-                loader: 'tslint-loader'
-            },*/
-
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
             { enforce: "pre", test: /\.js$/, loader: "source-map-loader" }
         ]
     },
-
-    plugins: [
-        /*new HappyPack({
-            id: 'ts',
-            threads: 2,
-            loaders: [
-                {
-                    path: 'ts-loader',
-                    query: { happyPackMode: true }
-                }
-            ]
-        }),*/
-
-        /*new webpack.WatchIgnorePlugin([
-            /node_modules/, /public/, /git_modules/
-        ])*/
-    ],
 
     target: 'node',
 
