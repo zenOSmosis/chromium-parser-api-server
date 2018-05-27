@@ -18,13 +18,9 @@ RUN yarn global add \
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
-# Advanced node process manager
-# @see http://pm2.keymetrics.io/
-# RUN yarn global add pm2
-
 WORKDIR /app
 
-# Add user (so we don't need --no-sandbox...?)
+# Add user so we don't need --no-sandbox
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser \
     && chown -R pptruser:pptruser /home/pptruser \
