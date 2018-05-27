@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build -t puppeteer .
+docker build -t zenosmosis/docker-chromium-simple-proxy .

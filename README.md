@@ -6,12 +6,12 @@ A simple GET proxy based on Docker, Chromium, [Google Puppeteer](https://github.
 ## Installation
 1. Clone this repo
 ```
-git clone https://github.com/zenOSmosis/docker-puppeteer
+git clone https://github.com/zenOSmosis/docker-chromium-simple-proxy
 ```
 
 2. Build the Docker container
 ```
-cd docker-puppeteer
+cd docker-chromium-simple-proxy
 docker build -t zenosmosis/puppeteer .
 ```
 
