@@ -25,23 +25,26 @@ ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
 WORKDIR /app
 
-# Add user so we don't need --no-sandbox
-# RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-#    && mkdir -p /home/pptruser \
-#    && chown -R pptruser:pptruser /home/pptruser \
-#    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
-#    && chown -R pptruser:pptruser /app
+# Add user
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
+    && chown -R pptruser:pptruser /app
 
 COPY . /app
 
+# Link puppeteer as a local npm package
+# TODO: Use Yarn global configuration here, instead
 RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
     && yarn link \
     && cd /app && yarn link puppeteer
 
-RUN yarn install
+RUN yarn install \
+    && yarn run compile:dev
 
 # Run everything after as non-privileged user
-# USER pptruser
+USER pptruser
 
 ENTRYPOINT ["dumb-init", "--"]
 
