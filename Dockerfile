@@ -11,14 +11,16 @@ wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_
 dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb && \
 apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-RUN yarn global add puppeteer@1.3.0 && yarn cache clean
+RUN yarn global add \
+    puppeteer@1.3.0 \
+    pm2 \
+    && yarn cache clean
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
 # Advanced node process manager
 # @see http://pm2.keymetrics.io/
-RUN yarn global add pm2
-# RUN npm install -g pm2
+# RUN yarn global add pm2
 
 WORKDIR /app
 
@@ -31,12 +33,11 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
 
 COPY . /app
 
-RUN npm install
+RUN yarn install
 
 # Run everything after as non-privileged user.
 USER pptruser
 
 ENTRYPOINT ["dumb-init", "--"]
 
-# CMD ["pm2", "start", "pm2.config.js", "--no-daemon"]
 CMD ["./pm2.start.sh", "--no-daemon"]

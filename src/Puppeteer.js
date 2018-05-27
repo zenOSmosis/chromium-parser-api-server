@@ -13,7 +13,7 @@ class Puppeteer {
         this._options = options;
         this._options.isJavaScriptEnabled = (function(options){
             let isJavaScriptEnabled;
-            
+
             if (typeof options.isJavaScriptEnabled === 'undefined') {
                 isJavaScriptEnabled = DEFAULT_IS_JAVASCRIPT_ENABLED;
             } else {
@@ -44,7 +44,7 @@ class Puppeteer {
                 headless: true, // Whether to run browser in headless mode. Defaults to true unless the devtools option is true.
                 timeout: 10000, // Maximum time in milliseconds to wait for the browser instance to start. Defaults to 30000 (30 seconds). Pass 0 to disable timeout.
                 dumpio: false, // Whether to pipe the browser process stdout and stderr into process.stdout and process.stderr. Defaults to false.
-                userDataDir: '/tmp', // <string> Path to a User Data Directory.
+                userDataDir: '/dev/null', // <string> Path to a User Data Directory.
                 env: process.env, // Specify environment variables that will be visible to the browser. Defaults to process.env.
                 devtools: false, // Whether to auto-open a DevTools panel for each tab. If this option is true, the headless option will be set false.
                 pipe: true // Connects to the browser over a pipe instead of a WebSocket. Defaults to false.
@@ -64,6 +64,7 @@ class Puppeteer {
                 }
         
                 page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
+                console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
             
                 // Bind page events
                 page.once('load', () => {
