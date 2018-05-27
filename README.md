@@ -17,7 +17,7 @@ docker build -t zenosmosis/docker-chromium-simple-proxy .
 
 3. Run the Docker container
 ```
-docker run -p 8080:8080 --cap-add=SYS_ADMIN puppeteer
+docker run -p 8080:8080 --cap-add=SYS_ADMIN zenosmosis/docker-chromium-simple-proxy
 ```
 
 ## Usage Example
