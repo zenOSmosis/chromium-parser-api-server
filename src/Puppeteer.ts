@@ -103,11 +103,11 @@ class Puppeteer {
         };
     }
 
-    on(eventName: string, listener: () => void): void {
+    on(eventName: string, listener: (...args: any[]) => void): void {
         this._events.on(eventName, listener);
     }
 
-    off(eventName: string, listener: () => void): void {
+    off(eventName: string, listener: (...args: any[]) => void): void {
         this._events.off(eventName, listener);
     }
 

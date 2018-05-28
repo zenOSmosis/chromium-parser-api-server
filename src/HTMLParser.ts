@@ -85,11 +85,11 @@ class HTMLParser {
         });
     }
 
-    public on(eventName: string, listener: () => void): void {
+    public on(eventName: string, listener: (...args: any[]) => void): void {
         this._events.on(eventName, listener);
     }
 
-    public off(eventName: string, listener: () => void): void {
+    public off(eventName: string, listener: (...args: any[]) => void): void {
         this._events.off(eventName, listener);
     }
 
