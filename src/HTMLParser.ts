@@ -33,6 +33,8 @@ class HTMLParser {
      */
     public static EVT_READY: 'ready';
 
+    protected static PYTHON_ARTICLE_DATE_EXTRACTOR_PATH: string = __dirname + '/article-date-extractor.py';
+
     protected _events: EventEmitter;
 
     protected _url: string;
@@ -245,7 +247,7 @@ class HTMLParser {
         const html: string = this._html;
 
         try {
-            const dateExtractor = spawn('python', [__dirname + '/article-date-extractor.py']);
+            const dateExtractor = spawn('python', [HTMLParser.PYTHON_ARTICLE_DATE_EXTRACTOR_PATH]);
 
             var writeData = {
                 url: url,
