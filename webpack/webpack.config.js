@@ -18,10 +18,7 @@ module.exports = {
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
-        extensions: [".ts", ".tsx", ".js", ".json"],
-        alias: {
-            puppeteer: '/usr/local/share/.config/yarn/global/node_modules/puppeteer'
-        }
+        extensions: [".ts", ".tsx", ".js", ".json"]
     },
 
     /*watchOptions: {
