@@ -24,9 +24,9 @@ module.exports = {
         }
     },
 
-    watchOptions: {
+    /*watchOptions: {
         ignored: [/node_modules/]
-    },
+    },*/
     
     module: {
         rules: [
