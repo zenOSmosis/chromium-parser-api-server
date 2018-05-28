@@ -73,8 +73,6 @@ RUN yarn global add \
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
-WORKDIR /app
-
 # Add user
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser \
@@ -93,8 +91,8 @@ RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
     && yarn link \
     && cd /app && yarn link puppeteer
 
-RUN yarn install \
-    && yarn run compile:dev
+# RUN yarn install \
+#    && yarn run compile:dev
 
 # Install dependencies for article-date-extractor
 RUN pip intall lxml \
@@ -102,7 +100,7 @@ RUN pip intall lxml \
     && python setup.py install
 
 # Run everything after as non-privileged user
-USER pptruser
+# USER pptruser
 
 ENV HTTP_API_PORT=8080
 

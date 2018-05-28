@@ -103,12 +103,12 @@ class Puppeteer {
         };
     }
 
-    on(eventName: string, listener: () => void) {
-        return this._events.on(eventName, listener);
+    on(eventName: string, listener: () => void): void {
+        this._events.on(eventName, listener);
     }
 
-    off(eventName: string, listener: () => void) {
-        return this._events.off(eventName, listener);
+    off(eventName: string, listener: () => void): void {
+        this._events.off(eventName, listener);
     }
 
     /**
@@ -171,7 +171,7 @@ class Puppeteer {
                         return;
                     }
 
-                    console.log('Data:', evaluationData);
+                    // console.log('Data:', evaluationData);
                     this._events.emit('page-source', evaluationData.pageSource);
 
                     await self.terminate();

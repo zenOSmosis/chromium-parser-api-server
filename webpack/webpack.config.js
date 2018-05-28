@@ -50,6 +50,11 @@ module.exports = {
 
     target: 'node',
 
+    node: {
+        __dirname: true,
+        __filename: true
+    },
+
     mode: 'development',
 
     externals: [
