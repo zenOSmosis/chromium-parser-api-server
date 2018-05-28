@@ -101,7 +101,7 @@ RUN pip intall lxml \
     && python setup.py install
 
 # Run everything after as non-privileged user
-# USER pptruser
+USER pptruser
 
 ENV HTTP_API_PORT=8080
 

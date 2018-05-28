@@ -4,11 +4,12 @@
 
 PARENT_DIR=$(dirname $(pwd))
 
-echo '\nNote: You may wish to run "./pm2.start.sh" with, or without, the --no-daemon option\n'
+echo '\nNote: You may wish to run "yarn monitor" here\n'
 
 docker run \
     -v ${PARENT_DIR}:/app \
     -p 8080:8080 \
     --cap-add=SYS_ADMIN \
+    --user=root \
     -ti zenosmosis/docker-chromium-simple-proxy \
     bash
