@@ -1,16 +1,24 @@
 import sys, json, articleDateExtractor
 
-#Read data from stdin
 def read_in():
+    '''
+    Reads data in from stdin
+    '''
+
     readIn = sys.stdin.read()
     
     return readIn
 
 def main():
-    #get our data as an array from read_in()
     readIn = read_in()
     
     data = json.loads(readIn)
+
+    if ("url" not in data or
+        "html" not in data):
+        print "None"
+        return
+
     url = data["url"]
     html = data["html"]
 
@@ -19,6 +27,6 @@ def main():
 
     print (d)
 
-#start process
+# Start process
 if __name__ == '__main__':
     main()
