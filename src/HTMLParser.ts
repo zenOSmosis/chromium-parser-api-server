@@ -162,6 +162,7 @@ class HTMLParser {
         return this._get('description');
     }
 
+    // TODO: Implement keyword filtering
     public getKeywords(): string[] {
         return this._get('keywords');
     }

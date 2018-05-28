@@ -89,24 +89,31 @@ WORKDIR /app
 
 COPY . /app
 
-# Link puppeteer as a local npm package
-# TODO: Use Yarn global configuration here, instead
-RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
-    && yarn link \
-    && cd /app && yarn link puppeteer
-
-# RUN yarn install \
-#    && yarn run compile:dev
-
-# Install dependencies for article-date-extractor
-RUN pip intall lxml \
-    && cd node_modules/article-date-extractor \
-    && python setup.py install
-
 # Run everything after as non-privileged user
 USER pptruser
 
+# Link puppeteer as a local npm package
+# TODO: Use Yarn global configuration here, instead
+RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
+    && yarn link
+
+RUN yarn install \
+    && yarn link puppeteer \
+    && yarn run compile:dev
+
+# Install dependencies for article-date-extractor
+# Must switch to root account for this
+USER root
+RUN pip install lxml \
+    && cd node_modules/article-date-extractor \
+    && python setup.py install
+# Switch back to user account
+USER pptruser
+
+# Specify our public API port
 ENV HTTP_API_PORT=8080
+
+EXPOSE 8080
 
 # @see # @see https://github.com/Yelp/dumb-init
 ENTRYPOINT ["dumb-init", "--"]
