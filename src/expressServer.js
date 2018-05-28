@@ -33,6 +33,14 @@ expressServer.get('/', (req, res) => {
         const puppeteer = new Puppeteer(url, {
             isJavaScriptEnabled: _getIsJavaScriptEnabled(req.query)
         });
+
+        // Event request output
+        puppeteer.on(Puppeteer.EVT_PAGE_REQUEST, (data) => {
+            console.log('REQUEST', data);
+        });
+        puppeteer.on(Puppeteer.EVT_PAGE_RESPONSE, (data) => {
+            console.log('RESPONSE', data);
+        });
         
         var isPassedToContentParser;
 
@@ -56,6 +64,7 @@ expressServer.get('/', (req, res) => {
 
         puppeteer.on('page-source', (html) => {
             const htmlParser = new HTMLParser(html, url);
+            
             isPassedToContentParser = true;
 
             htmlParser.on(HTMLParser.EVT_READY, () => {
