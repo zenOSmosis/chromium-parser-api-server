@@ -1,6 +1,7 @@
 import express from 'express';
 const expressServer = express();
 import { Puppeteer } from './Puppeteer';
+import HTMLParser from './HTMLParser';
 
 var _toBoolean = (value) => {
     if (value == 1 || value == true) {
@@ -54,10 +55,14 @@ expressServer.get('/', (req, res) => {
         });
 
         puppeteer.on('page-source', (html) => {
-            // console.log(resp);
-            res.send(html);
+            const htmlParser = new HTMLParser(html, url);
+            isPassedToContentParser = true;
 
-            puppeteer.terminate();
+            htmlParser.on(HTMLParser.EVT_READY, () => {
+                res.send(htmlParser.getCondensedHTML());
+
+                puppeteer.terminate();
+            });
         });
 
         puppeteer.fetch();
