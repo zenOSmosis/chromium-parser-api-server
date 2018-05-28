@@ -3,19 +3,19 @@
 
 module.exports = {
     apps: [{
-        name: "src-build",
-        script: "yarn/compile.dev.sh",
+        name: "source-watch",
+        script: "./compile.sh",
         watch: true,
         autorestart: false,
-        ignore_watch: ["build", "node_modules", ".git"],
+        ignore_watch: ["build", "node_modules", ".git", "dev"],
         no_daemon: true
     },
     {
-        name: "built-app",
+        name: "build-watch",
         script: "./build/bundle.js",
         watch: true,
         autorestart: true,
-        ignore_watch: ["src", "node_modules", ".git"],
+        ignore_watch: ["src", "node_modules", ".git", "dev"],
         no_daemon: true
     }]
 };

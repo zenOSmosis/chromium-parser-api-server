@@ -2,4 +2,4 @@
 
 #!/bin/sh
 
-yarn run compile:dev
+yarn compile
