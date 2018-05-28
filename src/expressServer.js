@@ -1,9 +1,8 @@
 import express from 'express';
 const expressServer = express();
 import { Puppeteer } from './Puppeteer';
+import PuppeteerAPIServer from './PuppeteerAPIServer';
 import HTMLParser from './HTMLParser';
-
-import APIServer from './APIServer';
 
 // Docs serving
 (function(expressServer){
@@ -12,6 +11,6 @@ import APIServer from './APIServer';
     expressServer.use('/docs/source', express.static('/app/docs/source'));
 })(expressServer);
 
-var apiServer = new APIServer(expressServer);
+var apiServer = new PuppeteerAPIServer(expressServer);
 
 export default expressServer;

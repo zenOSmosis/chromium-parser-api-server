@@ -77,13 +77,14 @@ RUN yarn global add \
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
-# Add user
+# Add user & set directory permissions
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser \
     && mkdir -p /app \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
-    && chown -R pptruser:pptruser /app
+    && chown -R pptruser:pptruser /app \
+    && chmod g+s /app
 
 WORKDIR /app
 
