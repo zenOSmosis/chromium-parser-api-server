@@ -56,6 +56,10 @@ class HTMLParser {
 
         this._events = new EventEmitter();
 
+        this._init();
+    }
+
+    protected _init() {
         this._fetchPublishedDate((err, date) => {            
             if (err) {
                 console.error(err);
@@ -79,6 +83,7 @@ class HTMLParser {
                 this._type = metadata.type;
                 this._provider = metadata.provider;
 
+                // Class is ready for consumption
                 this._isReady = true;
                 this._events.emit(HTMLParser.EVT_READY);
             }
