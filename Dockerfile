@@ -1,4 +1,5 @@
-FROM node:8-slim
+FROM ubuntu:xenial
+MAINTAINER info@zenosmosis.com
 
 RUN apt-get update && \
     apt-get install -y \
@@ -46,13 +47,22 @@ RUN apt-get update && \
     lsb-release \
     xdg-utils \
     wget \
+    curl \
+    python-pip \
     && wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64.deb \
     && dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb \
     && apt-get clean && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install latest Yarn
-# RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+    && apt-get install nodejs
+
+# Install Yarn
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+     && apt-get update \
+     && apt-get install yarn
 
 RUN yarn global add \
     puppeteer@1.4.0 \
@@ -68,9 +78,12 @@ WORKDIR /app
 # Add user
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser \
+    && mkdir -p /app \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
     && chown -R pptruser:pptruser /app
+
+WORKDIR /app
 
 COPY . /app
 
@@ -82,6 +95,11 @@ RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
 
 RUN yarn install \
     && yarn run compile:dev
+
+# Install dependencies for article-date-extractor
+RUN pip intall lxml \
+    && cd node_modules/article-date-extractor \
+    && python setup.py install
 
 # Run everything after as non-privileged user
 USER pptruser
