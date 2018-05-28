@@ -1,6 +1,7 @@
 {
   "scripts": {
     "run:dev": "node build/bundle.js",
+    "gen:docs": "typedoc --out docs src --ignoreCompilerErrors",
     "compile:dev": "webpack --info-verbosity verbose --config webpack/webpack.config.js"
   },
   "dependencies": {

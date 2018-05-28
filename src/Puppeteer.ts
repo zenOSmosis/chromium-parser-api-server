@@ -26,9 +26,11 @@ interface IPuppeteerPageResponse {
 }
 
 /**
- * Note: This class interfaces directly with the backend Chrome/Chromium engine.
+ * Note: This class interfaces directly with the back-end Chrome/Chromium engine.
  */
 class Puppeteer {
+    // TODO: Implement error events
+
     /**
      * @event
      * Emits when the underlying page has loaded.

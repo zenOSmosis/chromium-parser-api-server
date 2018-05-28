@@ -67,6 +67,7 @@ RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 RUN yarn global add \
     puppeteer@1.4.0 \
     pm2 \
+    typedoc \
     webpack \
     webpack-cli \
     && yarn cache clean

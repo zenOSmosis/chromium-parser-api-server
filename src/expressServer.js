@@ -24,6 +24,12 @@ var _getIsJavaScriptEnabled = (query) => {
     return query['jsEnabled'];
 };
 
+// Docs serving
+(function(expressServer){
+    expressServer.use('/docs', express.static('/app/docs'));
+})(expressServer);
+
+
 expressServer.get('/', (req, res) => {
     var url;
 
