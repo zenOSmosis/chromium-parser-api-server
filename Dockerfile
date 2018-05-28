@@ -64,8 +64,11 @@ RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
      && apt-get update \
      && apt-get install yarn
 
+# This line is separated for development purposes only
+RUN yarn global add puppeteer@1.4.0
+
 RUN yarn global add \
-    puppeteer@1.4.0 \
+    apidoc \
     pm2 \
     typedoc \
     webpack \
