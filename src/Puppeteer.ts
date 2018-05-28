@@ -63,6 +63,14 @@ class Puppeteer {
 
     /**
      * @event
+     * Emits, with the page source, when the page source has been fully retrieved.
+     * 
+     * Note, if JavaScript is enabled, this executes after the scripts have run.
+     */
+    public static EVT_PAGE_SOURCE: string = 'page-source';
+
+    /**
+     * @event
      * Emits when the engine has closed.
      */
     public static EVT_CLOSE: string = 'close';
@@ -174,7 +182,7 @@ class Puppeteer {
                     }
 
                     // console.log('Data:', evaluationData);
-                    this._events.emit('page-source', evaluationData.pageSource);
+                    this._events.emit(Puppeteer.EVT_PAGE_SOURCE, evaluationData.pageSource);
 
                     await self.terminate();
 

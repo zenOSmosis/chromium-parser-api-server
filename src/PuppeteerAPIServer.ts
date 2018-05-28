@@ -2,7 +2,10 @@ import express from 'express';
 import { Puppeteer } from './Puppeteer';
 import HTMLParser from './HTMLParser';
 
-class APIServer {
+/**
+ * Wraps Express with a RESTful API suitable for controlling Puppeteer.
+ */
+class PuppeteerAPIServer {
     protected _app: express.Express;
 
     constructor (app: express.Express) {
@@ -11,14 +14,20 @@ class APIServer {
         this._initRoutes();
     }
 
-    protected _toBoolean(value: number | boolean): boolean {
-        if (value === 1 || value === true) {
+    /**
+     * Converts an Express query value to a boolean value.
+     */
+    protected _toBoolean(value: number | string | boolean): boolean {
+        if (value === 1 || value.toString().toUpperCase() === 'TRUE' || value === true) {
             return true;
         } else {
             return false;
         }
     }
     
+    /**
+     * Determines if JavaScript in enabled via an Express query object.
+     */
     protected _getIsJavaScriptEnabled(query: any): boolean {
         const defaultValue = true;
     
@@ -33,6 +42,8 @@ class APIServer {
     }
 
     /**
+     * Initializes API routes.
+     * 
      * API doc params @see http://apidocjs.com/#params
      */
     protected _initRoutes(): void {
@@ -52,10 +63,11 @@ class APIServer {
         };
 
         /**
-         * @api {get} /?url={url}&format={format}
+         * @api {get} /?url={url}&jsEnabled={jsEnabled}&format={format}
          * 
-         * @apiParam {string} url Url of resource to fetch.
-         * @apiParam {string} format (optional) The response format, default is JSON.
+         * @apiParam {string} url URL of resource to fetch.
+         * @apiParam {boolean} jsEnabled (optional; default is true) Whether the underlying browser engine should use JavaScript.
+         * @apiParam {string} format (optional; default is "json") The response format.
          */
         const _handleURLFetch = (req: any, res: any) => {
             let isPassedToContentParser: boolean;
@@ -80,7 +92,7 @@ class APIServer {
             });
 
             // Prevent hung pages
-            puppeteer.on('close', () => {
+            puppeteer.on(Puppeteer.EVT_CLOSE, () => {
                 if (isPassedToContentParser) {
                     return;
                 }
@@ -90,13 +102,26 @@ class APIServer {
                 }
             });
 
-            puppeteer.on('page-source', (html: string) => {
+            puppeteer.on(Puppeteer.EVT_PAGE_SOURCE, (html: string) => {
                 const htmlParser = new HTMLParser(html, url);
                 
                 isPassedToContentParser = true;
 
                 htmlParser.on(HTMLParser.EVT_READY, () => {
-                    res.send(htmlParser.getCondensedHTML());
+                    var data = {
+                        condensedHTML: htmlParser.getCondensedHTML(),
+                        author: htmlParser.getAuthor(),
+                        title: htmlParser.getTitle(),
+                        iconURL: htmlParser.getIconURL(),
+                        previewImageURL: htmlParser.getPreviewImageURL(),
+                        provider: htmlParser.getProvider(),
+                        description: htmlParser.getDescription(),
+                        keywords: htmlParser.getKeywords(),
+                        publishedDate: htmlParser.getPublishedDate(),
+                        type: htmlParser.getType()
+                    };
+                    res.send(JSON.stringify(data));
+                    // res.send(htmlParser.getCondensedHTML());
 
                     puppeteer.terminate();
                 });
@@ -115,4 +140,4 @@ class APIServer {
     }
 }
 
-export default APIServer;
+export default PuppeteerAPIServer;
