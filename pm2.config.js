@@ -3,10 +3,19 @@
 
 module.exports = {
     apps: [{
-        name: "puppeteer-app",
+        name: "src-build",
+        script: "yarn/compile.dev.sh",
+        watch: true,
+        autorestart: false,
+        ignore_watch: ["build", "node_modules", ".git"],
+        no_daemon: true
+    },
+    {
+        name: "built-app",
         script: "./build/bundle.js",
         watch: true,
-        ignore_watch: ["node_modules", ".git"],
+        autorestart: true,
+        ignore_watch: ["src", "node_modules", ".git"],
         no_daemon: true
     }]
 };
