@@ -4,7 +4,7 @@
     "setup": "yarn link puppeteer",
     "compile": "webpack --info-verbosity verbose --config webpack/webpack.config.js",
     "run": "node build/bundle.js",
-    "gen:docs:api": "echo 'TODO: Implement'",
+    "gen:docs:api": "apidoc -i src/ -o docs/api/",
     "gen:docs:source": "typedoc --out docs/source src --ignoreCompilerErrors"
   },
   "dependencies": {
