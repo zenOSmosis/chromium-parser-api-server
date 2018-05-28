@@ -59,40 +59,6 @@ class HTMLParser {
         this._init();
     }
 
-    /**
-     * Initializes the class for external consumption, then emits a "ready" event.
-     */
-    protected _init() {
-        this._fetchPublishedDate((err, date) => {            
-            if (err) {
-                console.error(err);
-            } else {
-                this._publishedDate = date;
-                
-                const readable = this._getReadable();
-
-                if (readable) {
-                    this._condensedHTML = readable.content;
-                    this._author = readable.byline;
-                }
-
-                const metadata = this._getMetatagData();
-
-                this._description = metadata.description;
-                this._iconURL = metadata.icon;
-                this._previewImageURL = metadata.image;
-                this._keywords = metadata.keywords || [];
-                this._title = metadata.title;
-                this._type = metadata.type;
-                this._provider = metadata.provider;
-
-                // Class is ready for consumption
-                this._isReady = true;
-                this._events.emit(HTMLParser.EVT_READY);
-            }
-        });
-    }
-
     public on(eventName: string, listener: (...args: any[]) => void): void {
         this._events.on(eventName, listener);
     }
@@ -110,7 +76,7 @@ class HTMLParser {
      * 
      * Typically, this may include the entire outer HTML of the DOM.
      */
-    public getHTML(): string {
+    public getHTML(): string | undefined {
         return this._get('html');
     }
 
@@ -119,55 +85,55 @@ class HTMLParser {
      * 
      * This does not include HEAD or BODY tags.
      */
-    public getCondensedHTML(): string {
+    public getCondensedHTML(): string | undefined {
         return this._get('condensedHTML');
     }
 
     /**
      * Returns the author of the article, if available.
      */
-    public getAuthor(): string {
+    public getAuthor(): string | undefined {
         return this._get('author');
     }
 
     /**
      * Retrieves the title of the article, if available.
      */
-    public getTitle(): string {
+    public getTitle(): string | undefined {
         return this._get('title');
     }
 
     /**
      * Retrieves the "favicon" of the page, if exists.
      */
-    public getIconURL(): string {
+    public getIconURL(): string | undefined {
         return this._get('iconURL');
     }
 
     /**
      * A URL which contains a preview image for the page.
      */
-    public getPreviewImageURL(): string {
+    public getPreviewImageURL(): string | undefined {
         return this._get('previewImageURL');
     }
 
     /**
      * A string presentation of the sub and primary domains.
      */
-    public getProvider(): string {
+    public getProvider(): string | undefined {
         return this._get('provider');
     }
 
-    public getDescription(): string {
+    public getDescription(): string | undefined {
         return this._get('description');
     }
 
     // TODO: Implement keyword filtering
-    public getKeywords(): string[] {
+    public getKeywords(): string[] | undefined {
         return this._get('keywords');
     }
 
-    public getPublishedDate(): string {
+    public getPublishedDate(): string | undefined {
         return this._get('publishedDate');
     }
 
@@ -192,12 +158,18 @@ class HTMLParser {
         }
     }
 
-    protected _getMetatagData(): IPageMetadata {
+    protected _getMetatagData(): IPageMetadata | undefined {
         const virtualDOM = new JSDOM(this._html, {
             url: this._url // TODO: Use parsed URL
         });
 
-        return getMetadata((virtualDOM.window as any).document, this._url);
+        try {
+            const metadata: IPageMetadata = getMetadata((virtualDOM.window as any).document, this._url);
+
+            return metadata;
+        } catch (exc) {
+            return;
+        }
     }
 
     /**
@@ -223,6 +195,41 @@ class HTMLParser {
         } else {
             return;
         }
+    }
+
+    /**
+     * Initializes the class for external consumption, then emits a "ready" event.
+     */
+    protected _init(): void {
+        this._fetchPublishedDate((err, date) => {            
+            if (err) {
+                console.error(err);
+            } else {
+                this._publishedDate = date;
+                
+                const readable = this._getReadable();
+
+                if (readable) {
+                    this._condensedHTML = readable.content;
+                    this._author = readable.byline;
+                }
+
+                const metadata = this._getMetatagData();
+                if (metadata) {
+                    this._description = metadata.description;
+                    this._iconURL = metadata.icon;
+                    this._previewImageURL = metadata.image;
+                    this._keywords = metadata.keywords || [];
+                    this._title = metadata.title;
+                    this._type = metadata.type;
+                    this._provider = metadata.provider;
+                }
+
+                // Class is ready for consumption
+                this._isReady = true;
+                this._events.emit(HTMLParser.EVT_READY);
+            }
+        });
     }
 
     /**
