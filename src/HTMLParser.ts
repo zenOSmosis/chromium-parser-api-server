@@ -59,6 +59,9 @@ class HTMLParser {
         this._init();
     }
 
+    /**
+     * Initializes the class for external consumption, then emits a "ready" event.
+     */
     protected _init() {
         this._fetchPublishedDate((err, date) => {            
             if (err) {
