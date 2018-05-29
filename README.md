@@ -19,7 +19,7 @@ docker-compose build
 ### Without Docker Compose
 
 ```
-docker run -p 8080:8080 --cap-add=SYS_ADMIN zenosmosis/docker-chromium-simple-proxy
+docker run -p 8080:8080 --cap-add=SYS_ADMIN --rm zenosmosis/docker-chromium-simple-proxy
 ```
 
 ### With Docker Compose
