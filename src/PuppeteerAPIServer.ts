@@ -8,7 +8,7 @@ import HTMLParser from './HTMLParser';
 class PuppeteerAPIServer {
     protected _app: express.Express;
 
-    constructor (app: express.Express) {
+    constructor(app: express.Express) {
         this._app = app;
 
         this._initRoutes();
@@ -24,20 +24,20 @@ class PuppeteerAPIServer {
             return false;
         }
     }
-    
+
     /**
      * Determines if JavaScript in enabled via an Express query object.
      */
     protected _getIsJavaScriptEnabled(query: any): boolean {
         const defaultValue = true;
-    
+
         if (typeof query.jsEnabled === 'undefined') {
             query.jsEnabled = defaultValue;
         }
-    
+
         // Convert to boolean
         query.jsEnabled = this._toBoolean(query.jsEnabled);
-    
+
         return query.jsEnabled;
     }
 
@@ -48,7 +48,7 @@ class PuppeteerAPIServer {
      */
     protected _initRoutes(): void {
         let url: string;
-        
+
         /**
          * @api {get} /
          * 
@@ -66,8 +66,36 @@ class PuppeteerAPIServer {
          * @api {get} /?url={url}&jsEnabled={jsEnabled}&format={format}
          * 
          * @apiParam {string} url URL of resource to fetch.
-         * @apiParam {boolean} jsEnabled (optional; default is true) Whether the underlying browser engine should use JavaScript.
+         * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
          * @apiParam {string} format (optional; default is "json") The response format.
+         * 
+         * @apiSuccess {string} url The URL, after all redirects have been performed.
+         * @apiSuccess {string} condensedHTML A filtered version of the HTML.
+         * @apiSuccess {string} author  Who wrote the page.
+         * @apiSuccess {string} title The title of the page.
+         * @apiSuccess {string} iconURL A URL which contains the icon for the page.
+         * @apiSuccess {string} previewImage A URL which contains a preview image for the page.
+         * @apiSuccess {string} provider A string representation of the sub and primary domains.
+         * @apiSuccess {string} description A short description of the page.
+         * @apiSuccess {string} keywords The keywords for the page.
+         * @apiSuccess {string} publishedDate The date of the page publication.
+         * @apiSuccess {string} type The type of content, as defined by Open Graph [ @see http://ogp.me/ ].
+         * 
+         * @apiSuccessExample JSON-formatted Success Response:
+         *      HTTP/1.1 200 OK
+         *      {
+         *          "url": "http://example.com",
+         *          "condensedHTML": "<div>...</div>",
+         *          "author": "John Doe",
+         *          "title": "My webpage"
+         *          "iconURL": "http://example.com/favicon.ico",
+         *          "previewImageURL": "http://example.com/preview-1024x683.jpg",
+         *          "provider": "Example Website",
+         *          "description": "A great website",
+         *          "keywords": "great, fun, website",
+         *          "publishedDate": "2013-08-12 08:51:00",
+         *          "type": "website"
+         *      }
          */
         const _handleURLFetch = (req: any, res: any) => {
             let isPassedToContentParser: boolean;
@@ -103,12 +131,15 @@ class PuppeteerAPIServer {
             });
 
             puppeteer.on(Puppeteer.EVT_PAGE_SOURCE, (html: string) => {
+                // TODO: Implement after-redirect URL fetching here and in Puppeteer
+
                 const htmlParser = new HTMLParser(html, url);
-                
+
                 isPassedToContentParser = true;
 
                 htmlParser.on(HTMLParser.EVT_READY, () => {
                     var data = {
+                        url: htmlParser.getURL(),
                         condensedHTML: htmlParser.getCondensedHTML(),
                         author: htmlParser.getAuthor(),
                         title: htmlParser.getTitle(),
@@ -129,7 +160,7 @@ class PuppeteerAPIServer {
 
             puppeteer.fetch();
         };
-        
+
         this._app.get('/', (req: any, res: any) => {
             if (!(url = req.query.url)) {
                 _handleRootPath(req, res);

@@ -69,6 +69,9 @@ class HTMLParser {
         this._events.off(eventName, listener);
     }
 
+    /**
+     * The original URL.
+     */
     public getURL(): string {
         return this._get('url');
     }
