@@ -1,6 +1,16 @@
 FROM ubuntu:xenial
 MAINTAINER info@zenosmosis.com
 
+# Add user & set directory permissions
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser \
+    && mkdir -p /app \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && mkdir -p /usr/local/share/.config/yarn/global/node_modules \
+    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
+    && chown -R pptruser:pptruser /app \
+    && chmod g+s /app
+
 RUN apt-get update && \
     apt-get install -y \
     gconf-service \
@@ -50,13 +60,15 @@ RUN apt-get update && \
     curl \
     python-pip \
     && wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64.deb \
-    && dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb \
-    && apt-get clean && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb
 
 # Install Node.js
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
     && apt-get install nodejs
+
+# Clean apt repo
+RUN apt-get clean && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Yarn
 RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -77,21 +89,9 @@ RUN yarn global add \
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
-# Add user & set directory permissions
-RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-    && mkdir -p /home/pptruser \
-    && mkdir -p /app \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
-    && chown -R pptruser:pptruser /app \
-    && chmod g+s /app
-
 WORKDIR /app
 
 COPY . /app
-
-# Run everything after as non-privileged user
-USER pptruser
 
 # Link puppeteer as a local npm package
 # TODO: Use Yarn global configuration here, instead
@@ -100,15 +100,16 @@ RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
 
 RUN yarn install \
     && yarn link puppeteer \
-    && yarn run compile:dev
+    && yarn compile
 
 # Install dependencies for article-date-extractor
-# Must switch to root account for this
-USER root
 RUN pip install lxml \
     && cd node_modules/article-date-extractor \
     && python setup.py install
-# Switch back to user account
+
+RUN chown -R pptruser:pptruser /app
+
+# Run everything after as non-privileged user
 USER pptruser
 
 # Specify our public API port
