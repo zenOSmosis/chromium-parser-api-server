@@ -10,6 +10,7 @@ docker run \
     -v ${PARENT_DIR}:/app \
     -p 8080:8080 \
     --cap-add=SYS_ADMIN \
+    --rm \
     --user=root \
     -ti zenosmosis/docker-chromium-simple-proxy \
     bash
