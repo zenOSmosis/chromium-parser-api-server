@@ -5,7 +5,7 @@
     "compile": "webpack --info-verbosity verbose --config webpack/webpack.config.js",
     "run": "node build/bundle.js",
     "gen:docs:api": "apidoc -i src/ -o docs/api/",
-    "gen:docs:source": "typedoc --out docs/source src --ignoreCompilerErrors"
+    "gen:docs:source": "typedoc --out docs/source src --ignoreCompilerErrors --disableOutputCheck"
   },
   "dependencies": {
     "@types/express": "^4.11.1",
