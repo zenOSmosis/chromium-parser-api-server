@@ -4,8 +4,30 @@
 import puppeteer from 'puppeteer';
 import EventEmitter from 'events';
 
-interface IPuppeteerOptions {
+interface IPuppeteerRequestOptions {
     isJavaScriptEnabled: boolean;
+}
+
+/**
+ * Set of configurable options to set on the browser.
+ * @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerdefaultargs
+ */
+interface IPuppeteerLaunchOptions {
+    ignoreHTTPSErrors?: boolean;
+    headless?: boolean;
+    executablePath?: string;
+    slowMo?: number;
+    args?: Array<string>;
+    ignoreDefaultArgs?: boolean;
+    handleSIGINT?: boolean;
+    handleSIGTERM?: boolean;
+    handleSIGHUP?: boolean;
+    timeout?: number;
+    dumpio?: boolean;
+    userDataDir?: string;
+    env?: object;
+    devtools?: boolean;
+    pipe?: boolean;
 }
 
 interface IPuppeteerPageRequest {
@@ -33,13 +55,33 @@ class Puppeteer {
 
     /**
      * @event
+     * Emits, with an Error object, when any type of error has been thrown.
+     */
+    public static EVT_ERROR: string = 'error';
+
+    /**
+     * @event
      * Emits when the underlying page has loaded.
      */
     public static EVT_PAGE_LOAD: string = 'page-load';
 
     /**
      * @event
-     * Emits when the underlying page has cloased.
+     * Emits, with an Error object, if the page crashes.
+     * @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#event-error
+     */
+    public static EVT_PAGE_CRASH_ERROR: string = 'page-crash-error';
+
+    /**
+     * @event
+     * Emits, with the exception message, when an uncaught exception happens within the page.
+     * @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#event-pageerror
+     */
+    public static EVT_PAGE_EXCEPTION_ERROR: string = 'page-exception-error';
+
+    /**
+     * @event
+     * Emits when the underlying page has closed.
      */
     public static EVT_PAGE_CLOSE: string = 'page-close';
 
@@ -71,18 +113,23 @@ class Puppeteer {
 
     /**
      * @event
-     * Emits when the engine has closed.
+     * Emits when the engine has closed, or has been terminated.
      */
     public static EVT_CLOSE: string = 'close';
 
     protected _url: string;
     protected _events: EventEmitter;
-    protected _options: IPuppeteerOptions = {
+    protected _options: IPuppeteerRequestOptions = {
         isJavaScriptEnabled: true // Set JavaScript enabled to be true, by default
     };
     protected _browser: any;
 
-    constructor(url: string, options?: IPuppeteerOptions) {
+    /**
+     * 
+     * @param url {string} The URL to capture. Note that this is currently only available as a GET request.
+     * @param options {object} IPuppeteerRequestOptions
+     */
+    constructor(url: string, options?: IPuppeteerRequestOptions) {
         this._url = url;
 
         if (typeof options !== 'undefined') {
@@ -94,10 +141,15 @@ class Puppeteer {
 
     /**
      * Retrieves the engines set to the internal browser engine.
+     * 
+     * @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerdefaultargs
+     * 
+     * For a list of Chromium command line switches:
+     * @see https://peter.sh/experiments/chromium-command-line-switches/
      */
-    public getEngineOptions(): {} {
+    public getEngineOptions(): IPuppeteerLaunchOptions {
         return {
-            // Note: --cap-add=SYS_ADMIN must be enabled for this container to run without a sandbox
+            // Chromium command line switches
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox'
@@ -126,7 +178,6 @@ class Puppeteer {
      */
     fetch(): void {
         (async (self) => {
-            // @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#puppeteerdefaultargs
             self._browser = await puppeteer
                 .launch(self.getEngineOptions())
                 .then(async (browser) => {
@@ -137,35 +188,19 @@ class Puppeteer {
 
                     try {
                         page = await browser.newPage();
-                    } catch (err) {
-                        console.error('Page open error', err);
+                        page.setRequestInterception(false);
+                        
+                        page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
+                        console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
+                        
+                        // Bind page events
+                        self._bindPageEvents(page);
 
-                        self.terminate();
-                        return;
-                    }
-
-                    page.setRequestInterception(false);
-
-                    page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
-                    console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
-
-                    // Bind page events
-                    self._bindPageEvents(page);
-
-                    try {
                         await page.goto(self._url);
-                    } catch (err) {
-                        console.error('Navigation error occurred', err);
 
-                        self.terminate();
-                        return;
-                    }
+                        let evaluationData;
+                        let document: any;
 
-                    let evaluationData;
-                    let document: any;
-
-                    try {
-                        // Get the "viewport" of the page, as reported by the page.
                         evaluationData = await page.evaluate(() => {
                             return {
                                 // width: document.documentElement.clientWidth,
@@ -174,29 +209,38 @@ class Puppeteer {
                                 pageSource: document.documentElement.outerHTML
                             };
                         });
+
+                        self._events.emit(Puppeteer.EVT_PAGE_SOURCE, evaluationData.pageSource);
+
                     } catch (err) {
-                        console.error('Page evaluation error occurred', err);
+                        self._emitError(Puppeteer.EVT_ERROR, err);
 
                         self.terminate();
                         return;
                     }
 
-                    // console.log('Data:', evaluationData);
-                    this._events.emit(Puppeteer.EVT_PAGE_SOURCE, evaluationData.pageSource);
-
-                    await self.terminate();
-
                 }).catch((err) => {
-                    console.error(err);
+                    self._events.emit(Puppeteer.EVT_ERROR, err);
+
+                    self.terminate();
                 });
         })(this);
+    }
+
+    protected _emitError(errorType: string, error: Error | any) {
+        if (errorType !== Puppeteer.EVT_ERROR) {
+            this._events.emit(errorType, error);
+        }
+
+        // Emit when any type of error has been thrown
+        this._events.emit(Puppeteer.EVT_ERROR, error);
     }
 
     /**
      * Closes Chromium and all of its pages (if any were opened).
      * The Browser object itself is considered to be disposed and cannot be used anymore.
      */
-    terminate(): void {
+    public terminate(): void {
         if (!this._browser) {
             console.error('Browser is not set');
             return;
@@ -215,6 +259,17 @@ class Puppeteer {
 
         page.once('load', () => {
             self._events.emit(Puppeteer.EVT_PAGE_LOAD);
+        });
+
+        page.on('error', (error: Error) => {
+            self._emitError(Puppeteer.EVT_PAGE_CRASH_ERROR, error);
+        });
+
+        page.on('pageerror', (e: string, ...args: any[]) => {
+            self._emitError(Puppeteer.EVT_PAGE_EXCEPTION_ERROR, {
+                e: e,
+                args: args
+            });
         });
 
         page.on('request', (request: puppeteer.Request) => {
@@ -264,7 +319,7 @@ class Puppeteer {
 
 export {
     Puppeteer,
-    IPuppeteerOptions,
+    IPuppeteerRequestOptions,
     IPuppeteerPageRequest,
     IPuppeteerPageResponse
 };
