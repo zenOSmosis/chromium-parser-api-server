@@ -65,6 +65,9 @@ class Puppeteer {
     /**
      * @event
      * Emits when the underlying page has loaded.
+     * 
+     * Note!  This runs IMMEDIATELY after the page has loaded.
+     * Using EVT_PAGE_EVALUATE runs after after scripts have run, etc.
      */
     public static EVT_PAGE_LOAD: string = 'page-load';
 
@@ -348,10 +351,10 @@ class Puppeteer {
         page.on('response', (response: puppeteer.Response) => {
             const pageResponse: IPuppeteerPageResponse = {
                 url: response.url(),
-                isCached: response.fromCache(), // True if the response was served from either the browser's disk cache or memory cache.
+                isCached: response.fromCache(), // Whether the response was served from either the browser's disk cache or memory cache
                 isFromServiceWorker: response.fromServiceWorker(),
                 headers: response.headers(),
-                isSuccess: response.ok(), // Whether the response was successful (status in the range 200-299) or not.
+                isSuccess: response.ok(), // Whether the response was successful (status in the range 200-299) or not
                 statusCode: response.status()
             };
 
