@@ -2,8 +2,23 @@ import express from 'express';
 import { Puppeteer } from './Puppeteer';
 import HTMLParser from './HTMLParser';
 
+interface IAPIResponse {
+    url: string;
+    condensedHTML?: string;
+    author?: string;
+    title?: string;
+    iconURL?: string;
+    previewImageURL?: string;
+    provider?: string;
+    description?: string;
+    keywords?: string[];
+    publishedDate?: string;
+    type?: string;
+}
+
 /**
- * Wraps Express with a RESTful API suitable for controlling Puppeteer.
+ * Wraps Express with a RESTful API suitable for both controlling
+ * Puppeteer and routing the data through HTMLParser.
  */
 class PuppeteerAPIServer {
     protected _app: express.Express;
@@ -104,19 +119,28 @@ class PuppeteerAPIServer {
                 isJavaScriptEnabled: this._getIsJavaScriptEnabled(req.query)
             });
 
-            // Event request output
-            puppeteer.on(Puppeteer.EVT_PAGE_REQUEST, (data) => {
-                console.log('REQUEST', data);
-            });
-            puppeteer.on(Puppeteer.EVT_PAGE_RESPONSE, (data) => {
-                console.log('RESPONSE', data);
-            });
+            let errors: Array<Error> = [];
 
             // Handle prematurely-ended connections
+            // (e.g. if a user disconnects while the process is running)
             req.connection.on('close', () => {
                 puppeteer.terminate();
 
                 console.log('Puppeteer is closed');
+            });
+
+            puppeteer.on(Puppeteer.EVT_PAGE_REQUEST, (data) => {
+                console.log('REQUEST', data);
+            });
+
+            puppeteer.on(Puppeteer.EVT_PAGE_RESPONSE, (data) => {
+                console.log('RESPONSE', data);
+            });
+
+            puppeteer.on(Puppeteer.EVT_ERROR, (error: Error) => {
+                errors.push(error);
+
+                console.error('ERROR', error);
             });
 
             // Prevent hung pages
@@ -126,19 +150,25 @@ class PuppeteerAPIServer {
                 }
 
                 if (!res.headersSent) {
+                    // TODO: Use a common API response method for this, instead
                     res.send('(Empty response)');
                 }
             });
 
-            puppeteer.on(Puppeteer.EVT_PAGE_SOURCE, (html: string) => {
-                // TODO: Implement after-redirect URL fetching here and in Puppeteer
+            puppeteer.on(Puppeteer.EVT_PAGE_EVALUATE, () => {
+                const html: string = puppeteer.getPageHTML();
+                let redirectURL: string = puppeteer.getRedirectedURL();
 
-                const htmlParser = new HTMLParser(html, url);
+                const htmlParser = new HTMLParser(html, redirectURL);
 
                 isPassedToContentParser = true;
 
+                // Kill the browser engine
+                puppeteer.terminate();
+
                 htmlParser.on(HTMLParser.EVT_READY, () => {
-                    var data = {
+                    // TODO: Use a common API response method for this, instead
+                    var data: IAPIResponse = {
                         url: htmlParser.getURL(),
                         condensedHTML: htmlParser.getCondensedHTML(),
                         author: htmlParser.getAuthor(),
@@ -152,9 +182,6 @@ class PuppeteerAPIServer {
                         type: htmlParser.getType()
                     };
                     res.send(JSON.stringify(data));
-                    // res.send(htmlParser.getCondensedHTML());
-
-                    puppeteer.terminate();
                 });
             });
 

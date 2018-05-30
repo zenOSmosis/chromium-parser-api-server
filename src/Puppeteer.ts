@@ -4,6 +4,9 @@
 import puppeteer from 'puppeteer';
 import EventEmitter from 'events';
 
+/**
+ * Abstracted configuration options.
+ */
 interface IPuppeteerRequestOptions {
     isJavaScriptEnabled: boolean;
 }
@@ -48,7 +51,7 @@ interface IPuppeteerPageResponse {
 }
 
 /**
- * Note: This class interfaces directly with the back-end Chrome/Chromium engine.
+ * This class interfaces directly with the back-end Chromium engine.
  */
 class Puppeteer {
     // TODO: Implement error events
@@ -64,6 +67,12 @@ class Puppeteer {
      * Emits when the underlying page has loaded.
      */
     public static EVT_PAGE_LOAD: string = 'page-load';
+
+    /**
+     * @event
+     * Emits when the underlying page's scripts have run, etc.
+     */
+    public static EVT_PAGE_EVALUATE: string = 'page-evaluate';
 
     /**
      * @event
@@ -105,24 +114,20 @@ class Puppeteer {
 
     /**
      * @event
-     * Emits, with the page source, when the page source has been fully retrieved.
-     * 
-     * Note, if JavaScript is enabled, this executes after the scripts have run.
-     */
-    public static EVT_PAGE_SOURCE: string = 'page-source';
-
-    /**
-     * @event
      * Emits when the engine has closed, or has been terminated.
      */
     public static EVT_CLOSE: string = 'close';
 
-    protected _url: string;
     protected _events: EventEmitter;
     protected _options: IPuppeteerRequestOptions = {
         isJavaScriptEnabled: true // Set JavaScript enabled to be true, by default
     };
+    
     protected _browser: any;
+    protected _url: string;
+    protected _redirectedURL: string;
+    protected _pageHTML: string;
+    protected _hasEvaluatedPage: boolean;
 
     /**
      * 
@@ -137,6 +142,28 @@ class Puppeteer {
         }
 
         this._events = new EventEmitter();
+
+        this.on(Puppeteer.EVT_PAGE_EVALUATE, () => {
+            this._hasEvaluatedPage = true;
+        });
+    }
+
+    public getRedirectedURL(): string {
+        return this._redirectedURL;
+    }
+
+    /**
+     * Retrieves whether the browser engine has completed a page load.
+     */
+    public getHasEvaluatedPage(): boolean {
+        return this._hasEvaluatedPage;
+    }
+
+    /**
+     * Returns the HTML of the page.
+     */
+    public getPageHTML(): string {
+        return this._pageHTML;
     }
 
     /**
@@ -158,17 +185,23 @@ class Puppeteer {
             headless: true, // Whether to run browser in headless mode. Defaults to true unless the devtools option is true.
             timeout: 10000, // Maximum time in milliseconds to wait for the browser instance to start. Defaults to 30000 (30 seconds). Pass 0 to disable timeout.
             dumpio: false, // Whether to pipe the browser process stdout and stderr into process.stdout and process.stderr. Defaults to false.
-            userDataDir: '/dev/null', // <string> Path to a User Data Directory.
+            userDataDir: '/dev/null', // Path to a User Data Directory.
             env: process.env, // Specify environment variables that will be visible to the browser. Defaults to process.env.
             devtools: false, // Whether to auto-open a DevTools panel for each tab. If this option is true, the headless option will be set false.
             pipe: true // Connects to the browser over a pipe instead of a WebSocket. Defaults to false.
         };
     }
 
+    /**
+     * Registers an event listener.
+     */
     on(eventName: string, listener: (...args: any[]) => void): void {
         this._events.on(eventName, listener);
     }
 
+    /**
+     * Unregisters an event listener.
+     */
     off(eventName: string, listener: (...args: any[]) => void): void {
         this._events.off(eventName, listener);
     }
@@ -198,19 +231,31 @@ class Puppeteer {
 
                         await page.goto(self._url);
 
-                        let evaluationData;
-                        let document: any;
+                        // Determines the URL after all page redirections have been made
+                        // TODO: Bugfix
+                        // This appears to be an issue: https://github.com/GoogleChrome/puppeteer/issues/1370
+                        // As a workaround, use evaluationData.url below
+                        /*if (primeResponse &&
+                            typeof primeResponse.request === 'function') {
+                            const chain = primeResponse.request().redirectChain();
+                            self._redirectedURL = chain[chain.length - 1].url();
+                        }*/
 
+                        let evaluationData;
+                        let window: any;
+                        let document: any;
                         evaluationData = await page.evaluate(() => {
                             return {
                                 // width: document.documentElement.clientWidth,
                                 // height: document.documentElement.clientHeight,
                                 // deviceScaleFactor: window.devicePixelRatio,
-                                pageSource: document.documentElement.outerHTML
+                                url: window.location.href,
+                                pageHTML: document.documentElement.outerHTML
                             };
                         });
-
-                        self._events.emit(Puppeteer.EVT_PAGE_SOURCE, evaluationData.pageSource);
+                        self._redirectedURL = evaluationData.url;
+                        self._pageHTML = evaluationData.pageHTML;
+                        self._events.emit(Puppeteer.EVT_PAGE_EVALUATE);
 
                     } catch (err) {
                         self._emitError(Puppeteer.EVT_ERROR, err);
@@ -220,7 +265,7 @@ class Puppeteer {
                     }
 
                 }).catch((err) => {
-                    self._events.emit(Puppeteer.EVT_ERROR, err);
+                    self._emitError(Puppeteer.EVT_ERROR, err);
 
                     self.terminate();
                 });
@@ -228,6 +273,8 @@ class Puppeteer {
     }
 
     protected _emitError(errorType: string, error: Error | any) {
+        console.error(errorType, error);
+
         if (errorType !== Puppeteer.EVT_ERROR) {
             this._events.emit(errorType, error);
         }
@@ -252,6 +299,8 @@ class Puppeteer {
     }
 
     /**
+     * Binds internal page events to the class.
+     * 
      * @see https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#class-page
      */
     protected _bindPageEvents(page: puppeteer.Page): void {
