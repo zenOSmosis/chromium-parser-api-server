@@ -1,8 +1,10 @@
+# Simple stdin/stdout I/O to article-date-extractor utility.
+
 import sys, json, articleDateExtractor
 
 def read_in():
     '''
-    Reads data in from stdin
+    Reads data in from stdin.
     '''
 
     readIn = sys.stdin.read()
@@ -10,8 +12,10 @@ def read_in():
     return readIn
 
 def main():
+    # Read from stdin
     readIn = read_in()
     
+    # Parse into JSON
     data = json.loads(readIn)
 
     if ("url" not in data or
