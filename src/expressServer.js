@@ -1,3 +1,4 @@
+import compression from 'compression';
 import express from 'express';
 const expressServer = express();
 import { Puppeteer } from './Puppeteer';
@@ -12,5 +13,9 @@ import HTMLParser from './HTMLParser';
 })(expressServer);
 
 var apiServer = new PuppeteerAPIServer(expressServer);
+
+// Utilize gzip compression
+// @see https://expressjs.com/en/advanced/best-practice-performance.html
+expressServer.use(compression());
 
 export default expressServer;
