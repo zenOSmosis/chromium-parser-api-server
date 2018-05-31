@@ -2,7 +2,7 @@ import express from 'express';
 import { Puppeteer } from './Puppeteer';
 import HTMLParser from './HTMLParser';
 
-interface IAPIResponse {
+interface IAPISuccessResponse {
     url: string;
     condensedHTML?: string;
     author?: string;
@@ -13,7 +13,11 @@ interface IAPIResponse {
     description?: string;
     keywords?: string[];
     publishedDate?: string;
-    type?: string;
+    openGraphType?: string;
+}
+
+interface IAPIErrorResponse {
+    error: string;
 }
 
 /**
@@ -67,11 +71,14 @@ class PuppeteerAPIServer {
         /**
          * @api {get} /
          * 
-         * Base URI path.
+         * Get API status
          *
          * @apiSuccessExample Success-Response:
-         *     HTTP/1.1 200 OK
-         *     Ready
+         *      HTTP/1.1 200 OK
+         *      Ready
+         * 
+         * @apiErrorExample Error-Response:
+         *      HTTP/1.1 404 Not Found
          */
         const _handleRootPath = (req: any, res: any) => {
             res.send('Ready');
@@ -79,6 +86,11 @@ class PuppeteerAPIServer {
 
         /**
          * @api {get} /?url={url}&jsEnabled={jsEnabled}&format={format}
+         * 
+         * Get URL parse
+         * 
+         * @apiExample {curl} Example usage:
+         *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1&format=json
          * 
          * @apiParam {string} url URL of resource to fetch.
          * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
@@ -109,7 +121,16 @@ class PuppeteerAPIServer {
          *          "description": "A great website",
          *          "keywords": "great, fun, website",
          *          "publishedDate": "2013-08-12 08:51:00",
-         *          "type": "website"
+         *          "openGraphType": "website"
+         *      }
+         * 
+         * 
+         * @apiError {string} error A description of the error.
+         * 
+         * @apiErrorExample JSON-formatted Error Response:
+         *      HTTP/1.1 404 Not Found
+         *      {
+         *          "error": "Error: net::ERR_FAILED at https://zenosmosis.com"
          *      }
          */
         const _handleURLFetch = (req: any, res: any) => {
@@ -151,7 +172,14 @@ class PuppeteerAPIServer {
 
                 if (!res.headersSent) {
                     // TODO: Use a common API response method for this, instead
-                    res.send('(Empty response)');
+                    if (errors) {
+
+                        const data: IAPIErrorResponse = {
+                            error: errors.toString()
+                        };
+                        res.statusCode = 404;
+                        res.send(JSON.stringify(data));
+                    }
                 }
             });
 
@@ -168,7 +196,7 @@ class PuppeteerAPIServer {
 
                 htmlParser.on(HTMLParser.EVT_READY, () => {
                     // TODO: Use a common API response method for this, instead
-                    var data: IAPIResponse = {
+                    const data: IAPISuccessResponse = {
                         url: htmlParser.getURL(),
                         condensedHTML: htmlParser.getCondensedHTML(),
                         author: htmlParser.getAuthor(),
@@ -179,7 +207,7 @@ class PuppeteerAPIServer {
                         description: htmlParser.getDescription(),
                         keywords: htmlParser.getKeywords(),
                         publishedDate: htmlParser.getPublishedDate(),
-                        type: htmlParser.getType()
+                        openGraphType: htmlParser.getOpenGraphType()
                     };
                     res.send(JSON.stringify(data));
                 });
