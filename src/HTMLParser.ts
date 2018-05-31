@@ -46,7 +46,7 @@ class HTMLParser {
     protected _previewImageURL: string | undefined;
     protected _keywords: string[] | undefined;
     protected _title: string | undefined;
-    protected _type: string | undefined;
+    protected _openGraphType: string | undefined;
     protected _provider: string | undefined;
     protected _publishedDate: string | undefined;
 
@@ -147,8 +147,8 @@ class HTMLParser {
      * 
      * @see http://ogp.me/#types
      */
-    public getType(): string {
-        return this._get('type');
+    public getOpenGraphType(): string {
+        return this._get('openGraphType');
     }
 
     protected _get(key: string): any | string[] | undefined {
@@ -226,7 +226,7 @@ class HTMLParser {
                     this._previewImageURL = metadata.image;
                     this._keywords = metadata.keywords || [];
                     this._title = metadata.title;
-                    this._type = metadata.type;
+                    this._openGraphType = metadata.type;
                     this._provider = metadata.provider;
                 }
 

@@ -39,6 +39,7 @@ interface IPuppeteerPageRequest {
     headers: puppeteer.Headers;
     postData: string | undefined;
     resourceType: string;
+    isToFulfill?: boolean;
 }
 
 interface IPuppeteerPageResponse {
@@ -125,7 +126,7 @@ class Puppeteer {
     protected _options: IPuppeteerRequestOptions = {
         isJavaScriptEnabled: true // Set JavaScript enabled to be true, by default
     };
-    
+
     protected _browser: any;
     protected _url: string;
     protected _redirectedURL: string;
@@ -151,6 +152,11 @@ class Puppeteer {
         });
     }
 
+    /**
+     * Retrieves the URL after all redirects have happened.
+     * 
+     * (e.g. "http" to "https" 301 redirects)
+     */
     public getRedirectedURL(): string {
         return this._redirectedURL;
     }
@@ -224,40 +230,36 @@ class Puppeteer {
 
                     try {
                         page = await browser.newPage();
-                        page.setRequestInterception(false);
-                        
+
+                        // Request interception is handled in page on "request" event handler
+                        page.setRequestInterception(true);
+
                         page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
                         console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
-                        
+
                         // Bind page events
                         self._bindPageEvents(page);
 
                         await page.goto(self._url);
 
-                        // Determines the URL after all page redirections have been made
-                        // TODO: Bugfix
-                        // This appears to be an issue: https://github.com/GoogleChrome/puppeteer/issues/1370
-                        // As a workaround, use evaluationData.url below
-                        /*if (primeResponse &&
-                            typeof primeResponse.request === 'function') {
-                            const chain = primeResponse.request().redirectChain();
-                            self._redirectedURL = chain[chain.length - 1].url();
-                        }*/
+                        self._redirectedURL = page.url();
 
+                        // Note, page.evaluate() has its own DOM in its scope, but we must declare it here
                         let evaluationData;
-                        let window: any;
+                        // let window: any;
                         let document: any;
                         evaluationData = await page.evaluate(() => {
                             return {
                                 // width: document.documentElement.clientWidth,
                                 // height: document.documentElement.clientHeight,
                                 // deviceScaleFactor: window.devicePixelRatio,
-                                url: window.location.href,
+                                // url: window.location.href,
                                 pageHTML: document.documentElement.outerHTML
                             };
                         });
-                        self._redirectedURL = evaluationData.url;
                         self._pageHTML = evaluationData.pageHTML;
+
+                        // Emit page evaluation event
                         self._events.emit(Puppeteer.EVT_PAGE_EVALUATE);
 
                     } catch (err) {
@@ -324,16 +326,45 @@ class Puppeteer {
             });
         });
 
+        // Note, we can filter URL types by using interceptedURL here
         page.on('request', (request: puppeteer.Request) => {
+            // For debugging
+            let isToFulfill: boolean = true;
+            
+            // const interceptedURL: string = request.url();
+
+            /*if (interceptedURL.endsWith('.js')) {
+                request.continue();
+            } else {
+                console.log('Blocking intercepted request URL: ' + interceptedURL);
+                request.abort();
+            }*/
+
+            /*if (request.url() === self._url ||
+                request.url() === self._redirectedURL) {
+                isToFulfill = true;
+                request.continue();
+            } else {
+                isToFulfill = false;
+                request.abort();
+            }*/
+ 
             const pageRequest: IPuppeteerPageRequest = {
                 url: request.url(),
                 method: request.method(),
                 headers: request.headers(),
                 postData: request.postData(),
-                resourceType: request.resourceType()
+                resourceType: request.resourceType(),
+                isToFulfill: isToFulfill
             };
 
+            console.log(pageRequest);
+
             self._events.emit(Puppeteer.EVT_PAGE_REQUEST, pageRequest);
+
+            if (isToFulfill) {
+                request.continue();
+            }
         });
 
         page.on('requestfailed', (request: puppeteer.Request) => {
