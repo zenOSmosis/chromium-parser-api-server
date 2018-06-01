@@ -128,11 +128,11 @@ class Puppeteer {
     };
 
     protected _browser: any;
-    protected _url: string;
-    protected _redirectedURL: string;
-    protected _pageHTML: string;
-    protected _hasEvaluatedPage: boolean;
-    protected _httpStatusCode: number;
+    protected _url: string = '';
+    protected _redirectedURL: string = '';
+    protected _pageHTML: string = '';
+    protected _hasEvaluatedPage: boolean = false;
+    protected _httpStatusCode: number = 0;
 
     /**
      * 
@@ -228,70 +228,85 @@ class Puppeteer {
     /**
      * Fetches the URL.
      */
-    fetch(): void {
-        (async (self) => {
-            self._browser = await puppeteer
-                .launch(self.getEngineOptions())
-                .then(async (browser) => {
-                    // Ensure we've got the same object running as a property
-                    self._browser = browser;
+    fetch(): Promise<{}> {
+        if (this._browser) {
+            throw new Error('Cannot refetch');
+        }
 
-                    let page;
+        const self = this;
 
-                    try {
-                        page = await browser.newPage();
+        var promise = new Promise((resolve: () => void, reject: (reason?: any) => void) => {
+            (async () => {
+                self._browser = await puppeteer
+                    .launch(self.getEngineOptions())
+                    .then(async (browser) => {
+                        // Ensure we've got the same object running as a property
+                        self._browser = browser;
+    
+                        let page;
+    
+                        try {
+                            page = await browser.newPage();
+    
+                            // Request interception is handled in page on "request" event handler
+                            page.setRequestInterception(true);
+    
+                            page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
+                            console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
+    
+                            // Bind page events
+                            self._bindPageEvents(page);
+    
+                            const mainResponse: puppeteer.Response | null = await page.goto(self._url);
+                            
+                            if (!mainResponse) {
+                                throw new Error('Did not retrieve a response');
+                            }
+    
+                            self._redirectedURL = mainResponse.url();
+                            self._httpStatusCode = mainResponse.status();
+    
+                            // self._redirectedURL = page.url();
+    
+                            // Note, page.evaluate() has its own DOM in its scope, but we must declare it here
+                            let evaluationData;
+                            // let window: any;
+                            let document: any;
+                            evaluationData = await page.evaluate(() => {
+                                return {
+                                    // width: document.documentElement.clientWidth,
+                                    // height: document.documentElement.clientHeight,
+                                    // deviceScaleFactor: window.devicePixelRatio,
+                                    // url: window.location.href,
+                                    pageHTML: document.documentElement.outerHTML
+                                };
+                            });
+                            self._pageHTML = evaluationData.pageHTML;
+    
+                            // Emit page evaluation event
+                            self._events.emit(Puppeteer.EVT_PAGE_EVALUATE);
 
-                        // Request interception is handled in page on "request" event handler
-                        page.setRequestInterception(true);
-
-                        page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
-                        console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
-
-                        // Bind page events
-                        self._bindPageEvents(page);
-
-                        const mainResponse: puppeteer.Response | null = await page.goto(self._url);
-                        
-                        if (!mainResponse) {
-                            throw new Error('Did not retrieve a response');
+                            resolve();
+    
+                        } catch (err) {
+                            self._emitError(Puppeteer.EVT_ERROR, err);
+    
+                            self.terminate();
+                            
+                            reject();
                         }
-
-                        self._redirectedURL = mainResponse.url();
-                        self._httpStatusCode = mainResponse.status();
-
-                        // self._redirectedURL = page.url();
-
-                        // Note, page.evaluate() has its own DOM in its scope, but we must declare it here
-                        let evaluationData;
-                        // let window: any;
-                        let document: any;
-                        evaluationData = await page.evaluate(() => {
-                            return {
-                                // width: document.documentElement.clientWidth,
-                                // height: document.documentElement.clientHeight,
-                                // deviceScaleFactor: window.devicePixelRatio,
-                                // url: window.location.href,
-                                pageHTML: document.documentElement.outerHTML
-                            };
-                        });
-                        self._pageHTML = evaluationData.pageHTML;
-
-                        // Emit page evaluation event
-                        self._events.emit(Puppeteer.EVT_PAGE_EVALUATE);
-
-                    } catch (err) {
+    
+                    }).catch((err) => {
                         self._emitError(Puppeteer.EVT_ERROR, err);
-
+    
                         self.terminate();
-                        return;
-                    }
 
-                }).catch((err) => {
-                    self._emitError(Puppeteer.EVT_ERROR, err);
+                        reject();
+                    });
+            })();
+        });
 
-                    self.terminate();
-                });
-        })(this);
+        return promise;
     }
 
     protected _emitError(errorType: string, error: Error | any) {
