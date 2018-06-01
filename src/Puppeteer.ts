@@ -132,6 +132,7 @@ class Puppeteer {
     protected _redirectedURL: string;
     protected _pageHTML: string;
     protected _hasEvaluatedPage: boolean;
+    protected _httpStatusCode: number;
 
     /**
      * 
@@ -159,6 +160,15 @@ class Puppeteer {
      */
     public getRedirectedURL(): string {
         return this._redirectedURL;
+    }
+
+    /**
+     * Retrieves the HTTP status code after the request has been performed.
+     * 
+     * @see https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+     */
+    public getHTTPStatusCode(): number {
+        return this._httpStatusCode;
     }
 
     /**
@@ -240,9 +250,16 @@ class Puppeteer {
                         // Bind page events
                         self._bindPageEvents(page);
 
-                        await page.goto(self._url);
+                        const mainResponse: puppeteer.Response | null = await page.goto(self._url);
+                        
+                        if (!mainResponse) {
+                            throw new Error('Did not retrieve a response');
+                        }
 
-                        self._redirectedURL = page.url();
+                        self._redirectedURL = mainResponse.url();
+                        self._httpStatusCode = mainResponse.status();
+
+                        // self._redirectedURL = page.url();
 
                         // Note, page.evaluate() has its own DOM in its scope, but we must declare it here
                         let evaluationData;
@@ -330,7 +347,7 @@ class Puppeteer {
         page.on('request', (request: puppeteer.Request) => {
             // For debugging
             let isToFulfill: boolean = true;
-            
+
             // const interceptedURL: string = request.url();
 
             /*if (interceptedURL.endsWith('.js')) {

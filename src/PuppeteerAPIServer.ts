@@ -211,6 +211,9 @@ class PuppeteerAPIServer {
                     };
                     res.send(JSON.stringify(data));
                 });
+
+                // console.log(puppeteer.getRedirectedURL());
+                // console.log(puppeteer.getHTTPStatusCode());
             });
 
             puppeteer.fetch();
