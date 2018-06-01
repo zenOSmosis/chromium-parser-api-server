@@ -85,16 +85,15 @@ class PuppeteerAPIServer {
         };
 
         /**
-         * @api {get} /?url={url}&jsEnabled={jsEnabled}&format={format}
+         * @api {get} /?url={url}&jsEnabled={jsEnabled}
          * 
          * Get URL parse
          * 
          * @apiExample {curl} Example usage:
-         *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1&format=json
+         *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1
          * 
          * @apiParam {string} url URL of resource to fetch.
          * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
-         * @apiParam {string} format (optional; default is "json") The response format.
          * 
          * @apiSuccess {string} url The URL, after all redirects have been performed.
          * @apiSuccess {string} condensedHTML A filtered version of the HTML.
@@ -134,6 +133,8 @@ class PuppeteerAPIServer {
          *      }
          */
         const _handleURLFetch = (req: any, res: any) => {
+            const self = this;
+
             let isPassedToContentParser: boolean;
 
             const puppeteer = new Puppeteer(url, {
@@ -171,14 +172,13 @@ class PuppeteerAPIServer {
                 }
 
                 if (!res.headersSent) {
-                    // TODO: Use a common API response method for this, instead
                     if (errors) {
 
                         const data: IAPIErrorResponse = {
                             error: errors.toString()
                         };
-                        res.statusCode = 404;
-                        res.send(JSON.stringify(data));
+
+                        self._sendErrorResponse(res, data);
                     }
                 }
             });
@@ -195,7 +195,6 @@ class PuppeteerAPIServer {
                 puppeteer.terminate();
 
                 htmlParser.on(HTMLParser.EVT_READY, () => {
-                    // TODO: Use a common API response method for this, instead
                     const data: IAPISuccessResponse = {
                         url: htmlParser.getURL(),
                         condensedHTML: htmlParser.getCondensedHTML(),
@@ -209,11 +208,10 @@ class PuppeteerAPIServer {
                         publishedDate: htmlParser.getPublishedDate(),
                         openGraphType: htmlParser.getOpenGraphType()
                     };
-                    res.send(JSON.stringify(data));
+
+                    self._sendSuccessResponse(res, data);
                 });
 
-                // console.log(puppeteer.getRedirectedURL());
-                // console.log(puppeteer.getHTTPStatusCode());
             });
 
             puppeteer.fetch();
@@ -226,6 +224,21 @@ class PuppeteerAPIServer {
                 _handleURLFetch(req, res);
             }
         });
+    }
+
+    /**
+     * Sends a success API response via Express.
+     */
+    protected _sendSuccessResponse(res: any, data: IAPISuccessResponse) {
+        res.send(JSON.stringify(data));
+    }
+
+    /**
+     * Sends an error API response via Express.
+     */
+    protected _sendErrorResponse(res: any, data: IAPIErrorResponse) {
+        res.statusCode = 404; // Not Found
+        res.send(JSON.stringify(data));
     }
 }
 

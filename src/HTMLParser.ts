@@ -158,7 +158,9 @@ class HTMLParser {
 
         const privKey: string = '_' + key;
 
-        if (typeof this[privKey] !== undefined) {
+        if (typeof this[privKey] === 'undefined') {
+            throw new Error('Missing key: ' + key);
+        } else {
             return this[privKey];
         }
     }
