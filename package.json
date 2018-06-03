@@ -4,7 +4,6 @@
     "monitor": "./pm2.start.sh --no-daemon",
     "setup": "yarn link puppeteer",
     "compile": "webpack --info-verbosity verbose --config webpack/webpack.config.js",
-    "run": "node build/bundle.js",
     "gen:docs:api": "apidoc -i src/ -o docs/api/",
     "gen:docs:source": "typedoc --out docs/source src --ignoreCompilerErrors --disableOutputCheck"
   },
