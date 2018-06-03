@@ -37,18 +37,18 @@ class HTMLParser {
 
     protected _events: EventEmitter;
 
-    protected _url: string;
-    protected _html: string;
-    protected _condensedHTML: string | undefined;
-    protected _author: string | undefined;
-    protected _description: string | undefined;
-    protected _iconURL: string | undefined;
-    protected _previewImageURL: string | undefined;
-    protected _keywords: string[] | undefined;
-    protected _title: string | undefined;
-    protected _openGraphType: string | undefined;
-    protected _provider: string | undefined;
-    protected _publishedDate: string | undefined;
+    protected _url: string = '';
+    protected _html: string = '';
+    protected _condensedHTML: string | undefined = '';
+    protected _author: string | undefined = '';
+    protected _description: string | undefined = '';
+    protected _iconURL: string | undefined = '';
+    protected _previewImageURL: string | undefined = '';
+    protected _keywords: string[] | undefined = [];
+    protected _title: string | undefined = '';
+    protected _openGraphType: string | undefined = '';
+    protected _provider: string | undefined = '';
+    protected _publishedDate: string | undefined = '';
 
     protected _isReady: boolean;
 
@@ -151,14 +151,14 @@ class HTMLParser {
         return this._get('openGraphType');
     }
 
-    protected _get(key: string): any | string[] | undefined {
+    protected _get(key: string): any | string[] {
         if (!this._isReady) {
             throw new Error('Class is not ready');
         }
 
         const privKey: string = '_' + key;
 
-        if (typeof this[privKey] === 'undefined') {
+        if (!this.hasOwnProperty(privKey)) {
             throw new Error('Missing key: ' + key);
         } else {
             return this[privKey];
@@ -212,7 +212,9 @@ class HTMLParser {
             if (err) {
                 console.error(err);
             } else {
-                this._publishedDate = date;
+                if (date) {
+                    this._publishedDate = date as string;
+                }
                 
                 const readable = this._getReadable();
 
