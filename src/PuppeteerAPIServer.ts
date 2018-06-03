@@ -66,75 +66,15 @@ class PuppeteerAPIServer {
      * API doc params @see http://apidocjs.com/#params
      */
     protected _initRoutes(): void {
+        const self = this;
         let url: string;
 
-        /**
-         * @api {get} /
-         * 
-         * Get API status
-         *
-         * @apiSuccessExample Success-Response:
-         *      HTTP/1.1 200 OK
-         *      Ready
-         * 
-         * @apiErrorExample Error-Response:
-         *      HTTP/1.1 404 Not Found
-         */
+        // Root path should send the API status
         const _handleRootPath = (req: any, res: any) => {
-            res.send('Ready');
+            self._sendStatusResponse(res);
         };
 
-        /**
-         * @api {get} /?url={url}&jsEnabled={jsEnabled}
-         * 
-         * Get URL parse
-         * 
-         * @apiExample {curl} Example usage:
-         *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1
-         * 
-         * @apiParam {string} url URL of resource to fetch.
-         * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
-         * 
-         * @apiSuccess {string} url The URL, after all redirects have been performed.
-         * @apiSuccess {string} condensedHTML A filtered version of the HTML.
-         * @apiSuccess {string} author  Who wrote the page.
-         * @apiSuccess {string} title The title of the page.
-         * @apiSuccess {string} iconURL A URL which contains the icon for the page.
-         * @apiSuccess {string} previewImage A URL which contains a preview image for the page.
-         * @apiSuccess {string} provider A string representation of the sub and primary domains.
-         * @apiSuccess {string} description A short description of the page.
-         * @apiSuccess {string} keywords The keywords for the page.
-         * @apiSuccess {string} publishedDate The date of the page publication.
-         * @apiSuccess {string} type The type of content, as defined by Open Graph [ @see http://ogp.me/ ].
-         * 
-         * @apiSuccessExample JSON-formatted Success Response:
-         *      HTTP/1.1 200 OK
-         *      {
-         *          "url": "http://example.com",
-         *          "condensedHTML": "<div>...</div>",
-         *          "author": "John Doe",
-         *          "title": "My webpage"
-         *          "iconURL": "http://example.com/favicon.ico",
-         *          "previewImageURL": "http://example.com/preview-1024x683.jpg",
-         *          "provider": "Example Website",
-         *          "description": "A great website",
-         *          "keywords": "great, fun, website",
-         *          "publishedDate": "2013-08-12 08:51:00",
-         *          "openGraphType": "website"
-         *      }
-         * 
-         * 
-         * @apiError {string} error A description of the error.
-         * 
-         * @apiErrorExample JSON-formatted Error Response:
-         *      HTTP/1.1 404 Not Found
-         *      {
-         *          "error": "Error: net::ERR_FAILED at https://zenosmosis.com"
-         *      }
-         */
         const _handleURLFetch = (req: any, res: any) => {
-            const self = this;
-
             let isPassedToContentParser: boolean;
 
             const puppeteer = new Puppeteer(url, {
@@ -160,6 +100,7 @@ class PuppeteerAPIServer {
             });
 
             puppeteer.on(Puppeteer.EVT_ERROR, (error: Error) => {
+                // Add the new error to the stack
                 errors.push(error);
 
                 console.error('ERROR', error);
@@ -178,7 +119,7 @@ class PuppeteerAPIServer {
                             error: errors.toString()
                         };
 
-                        self._sendErrorResponse(res, data);
+                        self._sendURLParseResponse(res, data);
                     }
                 }
             });
@@ -209,7 +150,7 @@ class PuppeteerAPIServer {
                         openGraphType: htmlParser.getOpenGraphType()
                     };
 
-                    self._sendSuccessResponse(res, data);
+                    self._sendURLParseResponse(res, data);
                 });
 
             });
@@ -227,17 +168,72 @@ class PuppeteerAPIServer {
     }
 
     /**
-     * Sends a success API response via Express.
+     * @api {get} /
+     * 
+     * Get API status
+     *
+     * @apiSuccessExample Success-Response:
+     *      HTTP/1.1 200 OK
+     *      Ready
+     * 
+     * @apiErrorExample Error-Response:
+     *      HTTP/1.1 404 Not Found
      */
-    protected _sendSuccessResponse(res: any, data: IAPISuccessResponse) {
-        res.send(JSON.stringify(data));
+    protected _sendStatusResponse(res: any) {
+        res.send('Ready');
     }
 
     /**
-     * Sends an error API response via Express.
+     * @api {get} /?url={url}&jsEnabled={jsEnabled}
+     * 
+     * Get URL parse
+     * 
+     * @apiExample {curl} Example usage:
+     *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1
+     * 
+     * @apiParam {string} url URL of resource to fetch.
+     * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
+     * 
+     * @apiSuccess {string} url The URL, after all redirects have been performed.
+     * @apiSuccess {string} condensedHTML A filtered version of the HTML.
+     * @apiSuccess {string} author  Who wrote the page.
+     * @apiSuccess {string} title The title of the page.
+     * @apiSuccess {string} iconURL A URL which contains the icon for the page.
+     * @apiSuccess {string} previewImage A URL which contains a preview image for the page.
+     * @apiSuccess {string} provider A string representation of the sub and primary domains.
+     * @apiSuccess {string} description A short description of the page.
+     * @apiSuccess {string} keywords The keywords for the page.
+     * @apiSuccess {string} publishedDate The date of the page publication.
+     * @apiSuccess {string} type The type of content, as defined by Open Graph [ @see http://ogp.me/ ].
+     * 
+     * @apiSuccessExample JSON-formatted Success Response:
+     *      HTTP/1.1 200 OK
+     *      {
+     *          "url": "http://example.com",
+     *          "condensedHTML": "<div>...</div>",
+     *          "author": "John Doe",
+     *          "title": "My webpage"
+     *          "iconURL": "http://example.com/favicon.ico",
+     *          "previewImageURL": "http://example.com/preview-1024x683.jpg",
+     *          "provider": "Example Website",
+     *          "description": "A great website",
+     *          "keywords": "great, fun, website",
+     *          "publishedDate": "2013-08-12 08:51:00",
+     *          "openGraphType": "website"
+     *      }
+     * 
+     * @apiError {string} error A description of the error.
+     * @apiErrorExample JSON-formatted Error Response:
+     *      HTTP/1.1 404 Not Found
+     *      {
+     *          "error": "Error: net::ERR_FAILED at https://zenosmosis.com"
+     *      }
      */
-    protected _sendErrorResponse(res: any, data: IAPIErrorResponse) {
-        res.statusCode = 404; // Not Found
+    protected _sendURLParseResponse(res: any, data: IAPISuccessResponse | IAPIErrorResponse) {
+        if ((data as IAPIErrorResponse).error) {
+            res.statusCode = 404;
+        }
+
         res.send(JSON.stringify(data));
     }
 }
