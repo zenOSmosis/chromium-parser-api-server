@@ -192,7 +192,9 @@ class PuppeteerAPIServer {
      * 
      * Get URL parse
      * 
-     * Note that certain parameters may not return if no information is available for them.
+     * @apiDescription Fetches information about a URL.
+     * 
+     * Note that certain fields may not return if no information is available for them.
      * 
      * @apiExample {curl} Example usage:
      *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1
