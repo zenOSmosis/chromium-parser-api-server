@@ -182,3 +182,16 @@ const puppeteer = require('puppeteer');
     ]});
 
 ```
+
+## Acknowledgements
+
+Thanks to the following for their contributions to open-source, which helped make this project a reality.
+
+- [Docker](https://www.docker.com)
+- [Debian](https://www.debian.org) / [Ubuntu](https://www.ubuntu.com)
+- [Node.js](https://nodejs.org)
+- Google (for [Chromium](https://github.com/chromium/chromium) & [Puppeteer](https://github.com/GoogleChrome/puppeteer))
+- Mozilla (for [Readability](https://github.com/mozilla/readability) and [Page Metatag Parser](https://github.com/mozilla/page-metadata-parser))
+- Webhose.io (for the [article date extractor](https://github.com/Webhose/article-date-extractor))
+- Microsoft (for [TypeScript](https://www.typescriptlang.org))
+- Facebook (for [Jest](https://facebook.github.io/jest/) and [Yarn](https://yarnpkg.com))
