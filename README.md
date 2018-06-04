@@ -1,6 +1,42 @@
 # Chromium Parser API Server
 
-A web parser, built on Google's Chromium and Mozilla's Readability engines, this serves a RESTful API with JSON for output.
+A Dockerized web parser, which serves a RESTful API with JSON for output.
+
+Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) / [Chromium](https://github.com/chromium/chromium) and Mozilla's [Readability](https://github.com/mozilla/readability) filter.
+
+Forked from: https://github.com/alekzonder/docker-puppeteer
+
+Note: So far this has been tested to work w/ Ubuntu 16.04 running Docker 18.03.1-ce 
+
+## API Usage Example
+
+From your web browser, navigate to the following URL:
+
+```
+http://localhost:8080?url=https://zenosmosis.com&jsEnabled=false
+```
+
+### Example Output
+
+```
+HTTP/1.1 200 OK
+   {
+       "url": "http://example.com",
+       "proxyHTTPStatusCode": 200,
+       "fullHTML": "<div>...</div>",
+       "condensedHTML": "<div>...</div>",
+       "author": "John Doe",
+       "title": "My webpage"
+       "iconURL": "http://example.com/favicon.ico",
+       "previewImageURL": "http://example.com/preview-1024x683.jpg",
+       "provider": "Example Website",
+       "description": "A great website",
+       "keywords": "great, fun, website",
+       "publishedDate": "2013-08-12 08:51:00",
+       "openGraphType": "website"
+   }
+    
+```
 
 ## Getting Started
 
@@ -10,9 +46,9 @@ These instructions will get you a copy of the project up and running on your loc
 
 Things you need to install the software.
 
-- (preferably) A Unix-like host environment (e.g. Mac or Linux)
-- Docker 17+
-- (optional) Docker Compose 3.1+
+- (preferably) A Unix-like host environment (e.g. **Mac** or **Linux**)
+- **Docker** 18+ (Note, it MAY work on a lower version of Docker, but hasn't been tested)
+- (optional) **Docker Compose** 3.1+
 
 ### Building
 
@@ -116,17 +152,6 @@ http://localhost:8080/docs/source
 ```
 http://localhost:8080/docs/api
 ```
-
-
-## Usage Example
-
-From your web browser, navigate to the following URL:
-
-```
-http://localhost:8080?url=https://zenosmosis.com&jsEnabled=false
-```
-
-Note: So far this has been tested to work w/ Ubuntu 16.04 running Docker 18.03.1-ce 
 
 ## Debugging Notes
 
