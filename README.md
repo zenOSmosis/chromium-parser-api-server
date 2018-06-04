@@ -195,5 +195,6 @@ Thanks to the following for their contributions to open-source, which helped mak
 - Webhose.io (for the [article date extractor](https://github.com/Webhose/article-date-extractor))
 - Microsoft (for [TypeScript](https://www.typescriptlang.org))
 - [TypeDoc](http://typedoc.org)
-- [APIDOC](http://apidocjs.com) 
+- [APIDOC](http://apidocjs.com)
+- [PM2](http://pm2.keymetrics.io) 
 - Facebook (for [Jest](https://facebook.github.io/jest/) and [Yarn](https://yarnpkg.com))
