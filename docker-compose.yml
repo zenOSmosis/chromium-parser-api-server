@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   proxy:
-    image: zenosmosis/docker-chromium-simple-proxy
+    image: zenosmosis/chromium-parser-api-server
     build: .
     cap_add:
       - "SYS_ADMIN"

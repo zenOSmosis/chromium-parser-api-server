@@ -12,5 +12,5 @@ docker run \
     --cap-add=SYS_ADMIN \
     --rm \
     --user=root \
-    -ti zenosmosis/docker-chromium-simple-proxy \
+    -ti zenosmosis/chromium-parser-api-server \
     bash
