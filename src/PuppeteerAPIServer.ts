@@ -4,6 +4,8 @@ import HTMLParser from './HTMLParser';
 
 interface IAPISuccessResponse {
     url: string;
+    proxyHTTPStatusCode?: number;
+    fullHTML?: string;
     condensedHTML?: string;
     author?: string;
     title?: string;
@@ -138,6 +140,8 @@ class PuppeteerAPIServer {
                 htmlParser.on(HTMLParser.EVT_READY, () => {
                     const data: IAPISuccessResponse = {
                         url: htmlParser.getURL(),
+                        proxyHTTPStatusCode: puppeteer.getHTTPStatusCode(),
+                        fullHTML: htmlParser.getHTML(),
                         condensedHTML: htmlParser.getCondensedHTML(),
                         author: htmlParser.getAuthor(),
                         title: htmlParser.getTitle(),
@@ -188,21 +192,25 @@ class PuppeteerAPIServer {
      * 
      * Get URL parse
      * 
+     * Note that certain parameters may not return if no information is available for them.
+     * 
      * @apiExample {curl} Example usage:
      *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1
      * 
      * @apiParam {string} url URL of resource to fetch.
      * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
-     * 
-     * @apiSuccess {string} url The URL, after all redirects have been performed.
-     * @apiSuccess {string} condensedHTML A filtered version of the HTML.
+     *
+     * @apiSuccess {string} url The final URL, after all redirects have been performed.
+     * @apiSuccess {number} proxyHTTPStatusCode The HTTP status code of the fetched resource.
+     * @apiSuccess {string} fullHTML The full HTML of the fetch resource.
+     * @apiSuccess {string} condensedHTML A readable version of the HTML, filtered through Mozilla's Readability algorithm.
      * @apiSuccess {string} author  Who wrote the page.
      * @apiSuccess {string} title The title of the page.
      * @apiSuccess {string} iconURL A URL which contains the icon for the page.
      * @apiSuccess {string} previewImage A URL which contains a preview image for the page.
      * @apiSuccess {string} provider A string representation of the sub and primary domains.
      * @apiSuccess {string} description A short description of the page.
-     * @apiSuccess {string} keywords The keywords for the page.
+     * @apiSuccess {array} keywords The keywords for the page.
      * @apiSuccess {string} publishedDate The date of the page publication.
      * @apiSuccess {string} type The type of content, as defined by Open Graph [ @see http://ogp.me/ ].
      * 
@@ -210,6 +218,8 @@ class PuppeteerAPIServer {
      *      HTTP/1.1 200 OK
      *      {
      *          "url": "http://example.com",
+     *          "proxyHTTPStatusCode": 200,
+     *          "fullHTML": "<div>...</div>",
      *          "condensedHTML": "<div>...</div>",
      *          "author": "John Doe",
      *          "title": "My webpage"

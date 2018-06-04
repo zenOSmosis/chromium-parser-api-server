@@ -38,7 +38,7 @@ class HTMLParser {
     protected _events: EventEmitter;
 
     protected _url: string = '';
-    protected _html: string = '';
+    protected _html: string | undefined = '';
     protected _condensedHTML: string | undefined = '';
     protected _author: string | undefined = '';
     protected _description: string | undefined = '';
@@ -251,7 +251,7 @@ class HTMLParser {
      */
     protected _fetchPublishedDate(onFetch: (err: string | null, date?: string | undefined) => void) {
         const url: string = this._url;
-        const html: string = this._html;
+        const html: string | undefined = this._html;
 
         try {
             const dateExtractor = spawn('python', [HTMLParser.PYTHON_ARTICLE_DATE_EXTRACTOR_PATH]);
