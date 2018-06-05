@@ -3,7 +3,6 @@ import express from 'express';
 const expressServer = express();
 import { Puppeteer } from './Puppeteer';
 import PuppeteerAPIServer from './PuppeteerAPIServer';
-import HTMLParser from './HTMLParser';
 
 // Docs serving
 (function(expressServer){
