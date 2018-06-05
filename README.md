@@ -13,7 +13,7 @@ Note: So far this has been tested to work w/ Ubuntu 16.04 running Docker 18.03.1
 From your web browser, navigate to the following URL:
 
 ```
-http://localhost:8080?url=https://zenosmosis.com&jsEnabled=false
+http://localhost:8080?url=https://example.com&jsEnabled=false
 ```
 
 ### Example Output
@@ -93,7 +93,7 @@ API in this example utilizes port 8080 on the host.
 Note, ensure you're in the project's root directory before executing this command.
 
 ```
-docker run -v $(pwd):/app -p 8080:8080 -e "env=development" --cap-add=SYS_ADMIN --rm --user=root -ti zenosmosis/chromium-parser-api-server bash
+docker run -v $(pwd):/app -p 8080:8080 -e "IS_PRODUCTION=0" --cap-add=SYS_ADMIN --rm --user=root -ti zenosmosis/chromium-parser-api-server bash
 ```
 
 Note, unless otherwise specified, all future shell commands in this section refer to being inside of the container itself.

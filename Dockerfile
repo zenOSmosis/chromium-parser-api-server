@@ -69,6 +69,7 @@ RUN yarn test
 
 # Specify our public API port
 ENV HTTP_API_PORT=8080
+ENV IS_PRODUCTION=1
 
 EXPOSE 8080
 

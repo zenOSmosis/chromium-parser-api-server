@@ -14,6 +14,7 @@ else
     docker run \
         -v ${PARENT_DIR}:/app \
         -p 8080:8080 \
+        -e "IS_PRODUCTION=0" \
         --cap-add=SYS_ADMIN \
         --rm \
         --user=root \

@@ -1,31 +1,41 @@
 // Process file configuration for PM2 process runner
 // @see http://pm2.keymetrics.io/docs/usage/application-declaration/#process-file
 
-module.exports = {
-    apps: [{
+const isDevelopmentMode = (process.env.IS_PRODUCTION == 0);
+
+let apps = [];
+
+apps.push({
+    name: "build-watch",
+    script: "./build/bundle.js",
+    no_daemon: true,
+    watch: isDevelopmentMode,
+    ignore_watch: ["src", "node_modules", ".git", "dev", "docs", ".log"],
+    autorestart: false,
+    max_restarts: (isDevelopmentMode ? 1 : null)
+});
+
+apps.push({
+    name: "build-watch-doc-builder",
+    script: "./build-docs.sh",
+    watch: isDevelopmentMode,
+    ignore_watch: ["src", "node_modules", ".git", "dev", "docs", ".log"],
+    no_daemon: true,
+    autorestart: false
+});
+
+// Perform recompilation only if in development mode
+if (isDevelopmentMode) {
+    apps.push({
         name: "source-watch",
         script: "./compile.sh",
         no_daemon: true,
+        watch: isDevelopmentMode,
         ignore_watch: ["build", "node_modules", ".git", "dev", "docs", ".log"],
-        watch: true,
         autorestart: false
-    },
-    {
-        name: "build-watch",
-        script: "./build/bundle.js",
-         no_daemon: true,
-        // TODO: Enable this to autorestart, always, and not watch, if not in development mode
-        watch: true,
-        ignore_watch: ["src", "node_modules", ".git", "dev", "docs", ".log"],
-        autorestart: false,
-        max_restarts: 1
-    },
-    {
-        name: "build-watch-doc-builder",
-        script: "./build-docs.sh",
-        watch: true,
-        ignore_watch: ["src", "node_modules", ".git", "dev", "docs", ".log"],
-        no_daemon: true,
-        autorestart: false
-    }]
+    });
+}
+
+module.exports = {
+    apps
 };
