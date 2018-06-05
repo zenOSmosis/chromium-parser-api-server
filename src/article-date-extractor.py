@@ -20,7 +20,7 @@ def main():
 
     if ("url" not in data or
         "html" not in data):
-        print "None"
+        print("None")
         return
 
     url = data["url"]

@@ -188,7 +188,8 @@ const puppeteer = require('puppeteer');
 Thanks to the following for their contributions to open-source, which helped make this project a reality.
 
 - [Docker](https://www.docker.com)
-- [Debian](https://www.debian.org) / [Ubuntu](https://www.ubuntu.com)
+- [Debian](https://www.debian.org)
+- [Python](https://www.python.org)
 - [Node.js](https://nodejs.org)
 - Google (for [Chromium](https://github.com/chromium/chromium) & [Puppeteer](https://github.com/GoogleChrome/puppeteer))
 - Mozilla (for [Readability](https://github.com/mozilla/readability) and [Page Metatag Parser](https://github.com/mozilla/page-metadata-parser))
