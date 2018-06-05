@@ -70,6 +70,8 @@ RUN yarn install \
 # Run everything after as non-privileged user
 USER pptruser
 
+RUN yarn test
+
 # Specify our public API port
 ENV HTTP_API_PORT=8080
 
