@@ -70,6 +70,25 @@ class HTMLParser {
     }
 
     /**
+     * Creates a virtual DOM with the given HTML.
+     */
+    public createVDOMFromHTML(html: string): JSDOM {
+        const vDOM: JSDOM = new JSDOM(html, {
+            url: this._url
+        });
+
+        return vDOM;
+    }
+
+    public getRawTextFromHTML(html: string): string | undefined {
+        const vDOM: JSDOM = this.createVDOMFromHTML(html);
+
+        const plainText: string = (vDOM.window as any).document.body.textContent;
+
+        return plainText;
+    }
+
+    /**
      * The original URL.
      */
     public getURL(): string {
@@ -85,6 +104,15 @@ class HTMLParser {
         return this._get('html');
     }
 
+    public getFullText(): string | undefined {
+        var html: string | undefined = this.getHTML();
+        if (html) {
+            return this.getRawTextFromHTML(html);
+        } else {
+            return;
+        }
+    }
+
     /**
      * Returns a readable version of the HTML, if it exists.
      * 
@@ -92,6 +120,15 @@ class HTMLParser {
      */
     public getCondensedHTML(): string | undefined {
         return this._get('condensedHTML');
+    }
+
+    public getCondensedText(): string | undefined {
+        var condensedHTML: string | undefined = this.getCondensedHTML();
+        if (condensedHTML) {
+            return this.getRawTextFromHTML(condensedHTML);
+        } else {
+            return;
+        }
     }
 
     /**
@@ -254,7 +291,7 @@ class HTMLParser {
         const html: string | undefined = this._html;
 
         try {
-            const dateExtractor = spawn('python', [HTMLParser.PYTHON_ARTICLE_DATE_EXTRACTOR_PATH]);
+            const dateExtractor = spawn('python3.6', [HTMLParser.PYTHON_ARTICLE_DATE_EXTRACTOR_PATH]);
 
             var writeData = {
                 url: url,

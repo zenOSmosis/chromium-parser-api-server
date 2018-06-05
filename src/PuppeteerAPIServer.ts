@@ -6,7 +6,9 @@ interface IAPISuccessResponse {
     url: string;
     proxyHTTPStatusCode?: number;
     fullHTML?: string;
+    fullText?: string;
     condensedHTML?: string;
+    condensedText?: string;
     author?: string;
     title?: string;
     iconURL?: string;
@@ -146,7 +148,9 @@ class PuppeteerAPIServer {
                         url: htmlParser.getURL(),
                         proxyHTTPStatusCode: puppeteer.getHTTPStatusCode(),
                         fullHTML: htmlParser.getHTML(),
+                        fullText: htmlParser.getFullText(),
                         condensedHTML: htmlParser.getCondensedHTML(),
+                        condensedText: htmlParser.getCondensedText(),
                         author: htmlParser.getAuthor(),
                         title: htmlParser.getTitle(),
                         iconURL: htmlParser.getIconURL(),
@@ -201,7 +205,7 @@ class PuppeteerAPIServer {
      * Note that certain fields may not return if no information is available for them.
      * 
      * @apiExample {curl} Example usage:
-     *      curl -i http://localhost:8080?url=https://zenosmosis.com&jsEnabled=1
+     *      curl -i http://localhost:8080?url=https://example.com&jsEnabled=1
      * 
      * @apiParam {string} url URL of resource to fetch.
      * @apiParam {boolean} jsEnabled (optional; default is 1, or true) Whether the underlying browser engine should use JavaScript.
@@ -209,7 +213,9 @@ class PuppeteerAPIServer {
      * @apiSuccess {string} url The final URL, after all redirects have been performed.
      * @apiSuccess {number} proxyHTTPStatusCode The HTTP status code of the fetched resource.
      * @apiSuccess {string} fullHTML The full HTML of the fetch resource.
+     * @apiSuccess {string} fullText A text-only version of the full HTML.
      * @apiSuccess {string} condensedHTML A readable version of the HTML, filtered through Mozilla's Readability algorithm.
+     * @apiSuccess {string} condensedText A text-only version of the condensed HTML.
      * @apiSuccess {string} author  Who wrote the page.
      * @apiSuccess {string} title The title of the page.
      * @apiSuccess {string} iconURL A URL which contains the icon for the page.
@@ -226,7 +232,9 @@ class PuppeteerAPIServer {
      *          "url": "http://example.com",
      *          "proxyHTTPStatusCode": 200,
      *          "fullHTML": "<div>...</div>",
+     *          "fullText": "Logo | Navigation | Hello world! Here's an ad for you!",
      *          "condensedHTML": "<div>...</div>",
+     *          "condensedText": "Hello world!",
      *          "author": "John Doe",
      *          "title": "My webpage"
      *          "iconURL": "http://example.com/favicon.ico",
