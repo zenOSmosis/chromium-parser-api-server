@@ -85,6 +85,10 @@ class PuppeteerAPIServer {
 
             let errors: Array<Error> = [];
 
+            req.on('error', (err: Error) => {
+                console.error(err);
+            });
+
             // Handle prematurely-ended connections
             // (e.g. if a user disconnects while the process is running)
             req.connection.on('close', () => {
