@@ -68,8 +68,6 @@ RUN yarn install \
     && yarn compile
 
 # Run everything after as non-privileged user
-# Note: There is currently a problem with running Puppeteer as a sub-user
-# Getting ECONNRESET error in Node.js
 USER pptruser
 
 # Specify our public API port
