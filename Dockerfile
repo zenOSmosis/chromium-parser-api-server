@@ -70,6 +70,7 @@ RUN yarn install \
 # Run everything after as non-privileged user
 USER pptruser
 
+# Test as the non-privleged user
 RUN yarn test
 
 # Specify our public API port
