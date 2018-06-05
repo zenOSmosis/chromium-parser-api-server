@@ -51,21 +51,15 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
     && chmod g+s /usr/local/share/.config/yarn/global/node_modules
 
+# Enable linking to global Puppeteer
+RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
+    && yarn link
+
 WORKDIR /app
 
 COPY . /app
 
-# Link puppeteer as a local npm package
-# TODO: Use Yarn global configuration here, instead
-RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
-    && yarn link
-
-RUN yarn install \
-    && yarn link puppeteer \
-    && cd node_modules/article-date-extractor \
-    && python setup.py install \
-    && cd /app \
-    && yarn compile
+RUN bash -C ./finalize.sh
 
 # Run everything after as non-privileged user
 USER pptruser

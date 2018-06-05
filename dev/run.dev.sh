@@ -1,8 +1,6 @@
-#!/bin/bash
-
 # To be run only when wanting to develop the container out
 
-#!/bin/sh
+#!/bin/bash
 
 . $(pwd)/../docker-check.sh
 
@@ -11,7 +9,7 @@ if [ ${IS_IN_DOCKER_CONTAINER} == 1 ]; then
 else
     PARENT_DIR=$(dirname $(pwd))
 
-    echo '\nNote: You may wish to run "yarn monitor" here\n'
+    echo '\nNote: You may need to run "./finalize.sh" now before using\n'
 
     docker run \
         -v ${PARENT_DIR}:/app \
@@ -20,5 +18,5 @@ else
         --rm \
         --user=root \
         -ti zenosmosis/chromium-parser-api-server \
-        bash  
+        bash
 fi
