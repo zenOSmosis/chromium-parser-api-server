@@ -1,5 +1,9 @@
 FROM python:3.6
 MAINTAINER jeremy.harris@zenosmosis.com
+LABEL description "A Dockerized web parser, which serves a RESTful API with JSON for output."
+
+ENV HTTP_API_PORT=8080
+ENV IS_PRODUCTION=1
 
 # Fix for google-chrome-unstable
 # See https://crbug.com/795759
@@ -11,8 +15,10 @@ MAINTAINER jeremy.harris@zenosmosis.com
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+    && curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+    && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
-    && apt-get install -y gcc python-dev nodejs git libgconf-2-4 google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+    && apt-get install -y gcc python-dev nodejs yarn git libgconf-2-4 google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /src/*.deb \
@@ -21,13 +27,6 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
 # It's a good idea to use dumb-init to help prevent zombie chrome processes
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
-
-# Install Yarn
-# TODO: Combine w/ large RUN above
- RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-     && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-     && apt-get update \
-     && apt-get install yarn
 
 ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
@@ -59,6 +58,7 @@ WORKDIR /app
 
 COPY . /app
 
+# Install local Node.js modules, etc.
 RUN bash -C ./finalize.sh
 
 # Run everything after as non-privileged user
@@ -66,10 +66,6 @@ USER pptruser
 
 # Test as the non-privleged user
 RUN yarn test
-
-# Specify our public API port
-ENV HTTP_API_PORT=8080
-ENV IS_PRODUCTION=1
 
 EXPOSE 8080
 
