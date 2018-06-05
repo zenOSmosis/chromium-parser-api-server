@@ -1,85 +1,38 @@
-FROM ubuntu:xenial
-MAINTAINER info@zenosmosis.com
+FROM python:3.6
+MAINTAINER jeremy.harris@zenosmosis.com
 
-# Add user & set directory permissions
-RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
-    && mkdir -p /home/pptruser \
-    && mkdir -p /app \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && mkdir -p /usr/local/share/.config/yarn/global/node_modules \
-    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
-    && chown -R pptruser:pptruser /app \
-    && chmod g+s /app
+# Fix for google-chrome-unstable
+# See https://crbug.com/795759
+# (note: libgconf-2-4 may not need to be installed)
 
-RUN apt-get update && \
-    apt-get install -y \
-    gconf-service \
-    git \
-    libasound2 \
-    libatk1.0-0 \
-    libc6 \
-    libcairo2 \
-    libcups2 \
-    libdbus-1-3 \
-    libexpat1 \
-    libfontconfig1 \
-    libgcc1 \
-    libgconf-2-4 \
-    libgdk-pixbuf2.0-0 \
-    libglib2.0-0 \
-    libgtk-3-0 \
-    libnspr4 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libstdc++6 \
-    libx11-6 \
-    libx11-xcb1 \
-    libxcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxi6 \
-    libxrandr2 \
-    libxrender1 \
-    libxss1 \
-    libxtst6 \
-    fonts-ipafont-gothic \
-    fonts-wqy-zenhei \
-    fonts-thai-tlwg \
-    fonts-kacst \
-    ttf-freefont \
-    ca-certificates \
-    fonts-liberation \
-    libappindicator1 \
-    libnss3 \
-    lsb-release \
-    xdg-utils \
-    wget \
-    curl \
-    python-pip \
-    && wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64.deb \
-    && dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb
+# Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
+# Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer installs, work.
+# apt-get update && apt-get install -y wget --no-install-recommends \
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
+    && apt-get update \
+    && apt-get install -y gcc python-dev nodejs git libgconf-2-4 google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+      --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /src/*.deb \
+    && pip install lxml
 
-# Install Node.js
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
-    && apt-get install nodejs
-
-# Clean apt repo
-RUN apt-get clean && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+# It's a good idea to use dumb-init to help prevent zombie chrome processes
+ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
+RUN chmod +x /usr/local/bin/dumb-init
 
 # Install Yarn
-RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+# TODO: Combine w/ large RUN above
+ RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
      && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
      && apt-get update \
      && apt-get install yarn
 
-# This line is separated for development purposes only
-RUN yarn global add puppeteer@1.4.0
+ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
 
 RUN yarn global add \
+    puppeteer@1.4.0 \
     apidoc \
     pm2 \
     typedoc \
@@ -87,7 +40,16 @@ RUN yarn global add \
     webpack-cli \
     && yarn cache clean
 
-ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
+# Add user & set directory permissions
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
+    && mkdir -p /home/pptruser \
+    && mkdir -p /app \
+    && chown -R pptruser:pptruser /app \
+    && chmod g+s /app \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && mkdir -p /usr/local/share/.config/yarn/global/node_modules \
+    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
+    && chmod g+s /usr/local/share/.config/yarn/global/node_modules
 
 WORKDIR /app
 
@@ -100,16 +62,14 @@ RUN cd /usr/local/share/.config/yarn/global/node_modules/puppeteer \
 
 RUN yarn install \
     && yarn link puppeteer \
+    && cd node_modules/article-date-extractor \
+    && python setup.py install \
+    && cd /app \
     && yarn compile
 
-# Install dependencies for article-date-extractor
-RUN pip install lxml \
-    && cd node_modules/article-date-extractor \
-    && python setup.py install
-
-RUN chown -R pptruser:pptruser /app
-
 # Run everything after as non-privileged user
+# Note: There is currently a problem with running Puppeteer as a sub-user
+# Getting ECONNRESET error in Node.js
 USER pptruser
 
 # Specify our public API port
