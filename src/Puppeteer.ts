@@ -140,7 +140,7 @@ class Puppeteer {
      * @param options {object} IPuppeteerRequestOptions
      */
     constructor(url: string, options?: IPuppeteerRequestOptions) {
-        this._url = url;
+        this._url = this._getFixedURL(url);
 
         if (typeof options !== 'undefined') {
             this._options = options;
@@ -151,6 +151,20 @@ class Puppeteer {
         this.on(Puppeteer.EVT_PAGE_EVALUATE, () => {
             this._hasEvaluatedPage = true;
         });
+    }
+
+    /**
+     * Prefixes a URL w/ "http://" if it's not already.
+     */
+    protected _getFixedURL(url: string): string {
+        const re = (RegExp('^https?://', 'i'));
+        const hasScheme = re.test(url);
+        if (!hasScheme) {
+            // Prefix HTTP scheme
+            url = 'http://' + url;
+        }
+
+        return url;
     }
 
     /**
