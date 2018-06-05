@@ -18,8 +18,21 @@ afterAll(() => {
     server.close();
 });
 
+it ('Test URL Protocol Fixing', async (done) => {
+    const puppeteer1 = new Puppeteer('127.0.0.1:9090/test-html/test1.html');
+    expect(puppeteer1.getOriginURL()).toBe('http://127.0.0.1:9090/test-html/test1.html');
+
+    const puppeteer2 = new Puppeteer('http://127.0.0.1:9090/test-html/test1.html');
+    expect(puppeteer2.getOriginURL()).toBe('http://127.0.0.1:9090/test-html/test1.html');
+
+    const puppeteer3 = new Puppeteer('https://127.0.0.1:9090/test-html/test1.html');
+    expect(puppeteer3.getOriginURL()).toBe('https://127.0.0.1:9090/test-html/test1.html');
+
+    done();
+});
+
 it('Test JavaScript Enabled', async (done) => {
-    const puppeteer = new Puppeteer('http://127.0.0.1:9090/test-html/test1.html');
+    const puppeteer = new Puppeteer('127.0.0.1:9090/test-html/test1.html');
 
     puppeteer.on(Puppeteer.EVT_ERROR, (err) => {
         throw new Error('Test error', err);
@@ -47,7 +60,7 @@ it('Test JavaScript Enabled', async (done) => {
 });
 
 it('Test JavaScript Disabled', async (done) => {
-    const puppeteer = new Puppeteer('http://127.0.0.1:9090/test-html/test1.html', {
+    const puppeteer = new Puppeteer('127.0.0.1:9090/test-html/test1.html', {
         isJavaScriptEnabled: false
     });
 

@@ -154,7 +154,7 @@ class Puppeteer {
     }
 
     /**
-     * Prefixes a URL w/ "http://" if it's not already.
+     * Adds a protocol to the URL if it's not there already.
      */
     protected _getFixedURL(url: string): string {
         const re = (RegExp('^https?://', 'i'));
@@ -165,6 +165,13 @@ class Puppeteer {
         }
 
         return url;
+    }
+
+    /**
+     * Retrieves the original URL (after protocol fixes, etc.).
+     */
+    public getOriginURL(): string {
+        return this._url;
     }
 
     /**
