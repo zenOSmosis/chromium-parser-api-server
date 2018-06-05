@@ -1,7 +1,6 @@
 import compression from 'compression';
 import express from 'express';
 const expressServer = express();
-import { Puppeteer } from './Puppeteer';
 import PuppeteerAPIServer from './PuppeteerAPIServer';
 
 // Docs serving
