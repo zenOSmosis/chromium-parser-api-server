@@ -28,7 +28,7 @@ interface IAPIErrorResponse {
  * Wraps Express with a RESTful API suitable for both controlling
  * Puppeteer and routing the data through HTMLParser.
  */
-class PuppeteerAPIServer {
+class APIServer {
     protected _app: express.Express;
 
     constructor(app: express.Express) {
@@ -262,4 +262,4 @@ class PuppeteerAPIServer {
     }
 }
 
-export default PuppeteerAPIServer;
+export default APIServer;
