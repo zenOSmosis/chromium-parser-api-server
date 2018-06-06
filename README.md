@@ -5,12 +5,13 @@ A Dockerized web parser, which serves a RESTful API with JSON for output.
 Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) / [Chromium](https://github.com/chromium/chromium) and parts of Mozilla's [Firefox](https://www.mozilla.org/firefox).
 
 ## Features
-- **Stealth Mode**:  The headless Chromium instance has been modified so it doesn't send headers which expose it is running as a headless instance, and it also randomly mimics different real-world device user agents, client width/heights, and scale factors, to make traffic appear like it is coming from real users.
+- **Stealth Mode**:  Traffic from this engine mimic real-world devices in order help  fool automation detection algorithms.  The headless Chromium instance has been modified so it doesn't send headers which expose it is running as a headless instance, and it also randomly mimics different real-world device user agents, client width/heights, and scale factors, to make traffic appear like it is coming from real users.
 - **Readability Engine**: Pages are parsed using Mozilla's [Readability](https://github.com/mozilla/readability) engine, to grab the most important source material, without the ads.
 - **Metadata Parsing Engine**: Metadata, such as author, image preview, etc. are provided using Mozilla's  [Page Metatag Parser](https://github.com/mozilla/page-metadata-parser) library.
 - **Published Date Extraction**: Included algorithm is 90% accurate at identifying article published dates.
 - **Open Graph Coorelation**: Relation of pages to Facebook's [Open Graph Protocol](http://ogp.me).
-- **RESTful API**: Data output via a simple JSON data string.
+- **Zero Session Persistence**: Cookies and session data are discarded on every page open (written to /dev/null).
+- **RESTful API**: Data output via a simple JSON data string, using gzip compression for minimal latency.
 - **Documented and Tested**
 
 ## API Usage Example
