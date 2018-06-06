@@ -18,6 +18,10 @@ interface IAPISuccessResponse {
     keywords?: string[];
     publishedDate?: string;
     openGraphType?: string;
+    userAgent: string;
+    clientWidth: number;
+    clientHeight: number;
+    deviceScaleFactor: number;
 }
 
 interface IAPIErrorResponse {
@@ -159,7 +163,11 @@ class APIServer {
                         description: htmlParser.getDescription(),
                         keywords: htmlParser.getKeywords(),
                         publishedDate: htmlParser.getPublishedDate(),
-                        openGraphType: htmlParser.getOpenGraphType()
+                        openGraphType: htmlParser.getOpenGraphType(),
+                        userAgent: puppeteer.getUserAgent(),
+                        clientWidth: puppeteer.getClientWidth(),
+                        clientHeight: puppeteer.getClientHeight(),
+                        deviceScaleFactor: puppeteer.getDeviceScaleFactor()
                     };
 
                     self._sendURLParseResponse(res, data);
@@ -225,6 +233,10 @@ class APIServer {
      * @apiSuccess {array} keywords The keywords for the page.
      * @apiSuccess {string} publishedDate The date of the page publication.
      * @apiSuccess {string} type The type of content, as defined by Open Graph [ @see http://ogp.me/ ].
+     * @apiSuccess {string} userAgent The user agent sent by the browser engine.
+     * @apiSuccess {number} clientWidth The width of the client viewport sent by the browser engine.
+     * @apiSuccess {number} clientHeight The height of the client viewport sent by the browser engine.
+     * @apiSuccess {number} deviceScaleFactor The device scale factor (or DPR) sent by the browser engine.
      * 
      * @apiSuccessExample JSON-formatted Success Response:
      *      HTTP/1.1 200 OK
@@ -243,14 +255,18 @@ class APIServer {
      *          "description": "A great website",
      *          "keywords": "great, fun, website",
      *          "publishedDate": "2013-08-12 08:51:00",
-     *          "openGraphType": "website"
+     *          "openGraphType": "website",
+     *          "userAgent": "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%s Mobile Safari/537.36",
+     *          "clientWidth": 412,
+     *          "clientHeight": 732,
+     *          "deviceScaleFactor": 3.5
      *      }
      * 
      * @apiError {string} error A description of the error.
      * @apiErrorExample JSON-formatted Error Response:
      *      HTTP/1.1 404 Not Found
      *      {
-     *          "error": "Error: net::ERR_FAILED at https://zenosmosis.com"
+     *          "error": "Error: net::ERR_FAILED at https://example.com"
      *      }
      */
     protected _sendURLParseResponse(res: any, data: IAPISuccessResponse | IAPIErrorResponse) {

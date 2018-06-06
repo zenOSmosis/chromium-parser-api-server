@@ -26,7 +26,7 @@ HTTP/1.1 200 OK
        "fullHTML": "<div>...</div>",
        "condensedHTML": "<div>...</div>",
        "author": "John Doe",
-       "title": "My webpage"
+       "title": "My webpage",
        "iconURL": "http://example.com/favicon.ico",
        "previewImageURL": "http://example.com/preview-1024x683.jpg",
        "provider": "Example Website",

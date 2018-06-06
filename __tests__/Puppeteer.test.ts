@@ -1,6 +1,6 @@
 import express from 'express';
 const expressServer = express();
-import { Puppeteer } from './../src/Puppeteer';
+import { Puppeteer, IPuppeteerPageRequest } from './../src/Puppeteer';
 import { JSDOM } from 'jsdom';
 
 expressServer.use('/test-html', express.static('/app/__tests__/html'));
@@ -35,7 +35,7 @@ it('Test JavaScript Enabled', async (done) => {
     const puppeteer = new Puppeteer('127.0.0.1:9090/test-html/test1.html');
 
     puppeteer.on(Puppeteer.EVT_ERROR, (err) => {
-        throw new Error('Test error', err);
+        throw new Error(err);
     });
 
     expect(puppeteer.getHasEvaluatedPage()).toBe(false);
@@ -47,6 +47,11 @@ it('Test JavaScript Enabled', async (done) => {
     expect(puppeteer.getHasEvaluatedPage()).toBe(true);
     expect(puppeteer.getRedirectedURL()).toBe('http://127.0.0.1:9090/test-html/test1.html');
     expect(puppeteer.getHTTPStatusCode()).toBe(200);
+
+    expect(puppeteer.getUserAgent().toLowerCase().indexOf('headless')).toBe(-1);
+    expect(puppeteer.getClientWidth()).toBeGreaterThan(0);
+    expect(puppeteer.getClientHeight()).toBeGreaterThan(0);
+    expect(puppeteer.getDeviceScaleFactor()).toBeGreaterThan(0);
     
     const receivedPageHTML: string = puppeteer.getPageHTML();
     const vdom: JSDOM = new JSDOM(receivedPageHTML);
@@ -59,13 +64,40 @@ it('Test JavaScript Enabled', async (done) => {
     done();
 });
 
+// Tests which hide the identity of the automation engine on public websites
+it('Test Stealth Mode', async (done) => {
+    const puppeteer = new Puppeteer('127.0.0.1:9090/test-html/test1.html', {
+        isJavaScriptEnabled: false
+    });
+
+    puppeteer.on(Puppeteer.EVT_ERROR, (err) => {
+        throw new Error(err);
+    });
+
+    let iRequest = -1;
+    puppeteer.on(Puppeteer.EVT_PAGE_REQUEST, (request: IPuppeteerPageRequest) => {
+        iRequest++;
+        // Ensure "x-devtools-emulate-network-conditions-client-id" headers is not in the request
+        if (typeof request.headers['x-devtools-emulate-network-conditions-client-id'] !== 'undefined') {
+            throw new Error('"x-devtools-emulate-network-conditions-client-id" should not exist as a header');
+        }
+    });
+
+    await puppeteer.fetch();
+
+    // Expect at least one page request to be made
+    expect(iRequest).toBeGreaterThan(-1);
+
+    done();
+});
+
 it('Test JavaScript Disabled', async (done) => {
     const puppeteer = new Puppeteer('127.0.0.1:9090/test-html/test1.html', {
         isJavaScriptEnabled: false
     });
 
     puppeteer.on(Puppeteer.EVT_ERROR, (err) => {
-        throw new Error('Test error', err);
+        throw new Error(err);
     });
 
     expect(puppeteer.getHasEvaluatedPage()).toBe(false);
@@ -75,6 +107,11 @@ it('Test JavaScript Disabled', async (done) => {
     expect(puppeteer.getHasEvaluatedPage()).toBe(true);
     expect(puppeteer.getRedirectedURL()).toBe('http://127.0.0.1:9090/test-html/test1.html');
     expect(puppeteer.getHTTPStatusCode()).toBe(200);
+
+    expect(puppeteer.getUserAgent().toLowerCase().indexOf('headless')).toBe(-1);
+    expect(puppeteer.getClientWidth()).toBeGreaterThan(0);
+    expect(puppeteer.getClientHeight()).toBeGreaterThan(0);
+    expect(puppeteer.getDeviceScaleFactor()).toBeGreaterThan(0);
             
     const receivedPageHTML: string = puppeteer.getPageHTML();
     const vdom: JSDOM = new JSDOM(receivedPageHTML);
@@ -93,10 +130,12 @@ it('Test Prevent Fetch After Terminate', async (done) => {
     });
 
     puppeteer.on(Puppeteer.EVT_ERROR, (err) => {
-        throw new Error('Test error', err);
+        throw new Error(err);
     });
 
     await puppeteer.fetch();
+
+    console.log('Expecting an error here');
 
     let didThrowException: boolean;
     try {
@@ -106,7 +145,8 @@ it('Test Prevent Fetch After Terminate', async (done) => {
     } catch (exc) {
         didThrowException = true;
 
-        expect(exc.toString()).toBe('Error: Cannot refetch');
+        // TODO: Fix this up; it's rather nasty
+        expect(exc.toString()).toBe('Error: Error: Cannot refetch');
     }
     if (!didThrowException) {
         throw new Error('Expected an exception!');

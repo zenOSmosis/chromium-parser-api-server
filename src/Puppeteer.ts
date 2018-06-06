@@ -1,8 +1,10 @@
 // TODO: Implement incognito mode
 // TODO: Stop sending x-devtools-emulate-network-conditions-client-id header
 
-import puppeteer from 'puppeteer';
 import EventEmitter from 'events';
+import puppeteer from 'puppeteer';
+// TODO: Source TypeScript type here and use import statement
+var devices: string[] = require('puppeteer/DeviceDescriptors');
 
 /**
  * Abstracted configuration options.
@@ -49,6 +51,13 @@ interface IPuppeteerPageResponse {
     headers: puppeteer.Headers;
     isSuccess: boolean;
     statusCode: number;
+}
+
+interface IPuppeteerEval {
+    userAgent: string;
+    clientWidth: number;
+    clientHeight: number;
+    deviceScaleFactor: number;
 }
 
 /**
@@ -134,6 +143,11 @@ class Puppeteer {
     protected _hasEvaluatedPage: boolean = false;
     protected _httpStatusCode: number = 0;
 
+    protected _clientWidth: number = 0;
+    protected _clientHeight: number = 0;
+    protected _deviceScaleFactor: number = 0;
+    protected _userAgent: string = '';
+
     /**
      * 
      * @param url {string} The URL to capture. Note that this is currently only available as a GET request.
@@ -206,6 +220,22 @@ class Puppeteer {
         return this._pageHTML;
     }
 
+    public getUserAgent(): string {
+        return this._userAgent;
+    }
+
+    public getClientWidth(): number {
+        return this._clientWidth;
+    }
+
+    public getClientHeight(): number {
+        return this._clientHeight;
+    }
+
+    public getDeviceScaleFactor(): number {
+        return this._deviceScaleFactor;
+    }
+
     /**
      * Retrieves the engines set to the internal browser engine.
      * 
@@ -246,77 +276,76 @@ class Puppeteer {
         this._events.off(eventName, listener);
     }
 
+    protected _getRandomDeviceName(): Partial<puppeteer.EmulateOptions> {
+        const randomDeviceName: Partial<puppeteer.EmulateOptions> = devices[Math.floor(Math.random() * devices.length)] as Partial<puppeteer.EmulateOptions>;
+        
+        return randomDeviceName;
+    }
+
     /**
      * Fetches the URL.
      */
     fetch(): Promise<{}> {
-        if (this._browser) {
-            throw new Error('Cannot refetch');
-        }
-
         const self = this;
 
         var promise = new Promise((resolve: () => void, reject: (reason?: any) => void) => {
             try {
-                (async () => {
-                    self._browser = await puppeteer
+                if (self._browser) {
+                    throw new Error('Cannot refetch');
+                } else {
+                    (async () => {
+                    await puppeteer
                         .launch(self.getEngineOptions())
                         .then(async (browser) => {
-                            // Ensure we've got the same object running as a property
                             self._browser = browser;
         
                             let page;
         
-                            try {
-                                page = await browser.newPage();
-        
-                                // Request interception is handled in page on "request" event handler
-                                page.setRequestInterception(true);
-        
-                                page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
-                                console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
-        
-                                // Bind page events
-                                self._bindPageEvents(page);
-        
-                                const mainResponse: puppeteer.Response | null = await page.goto(self._url);
-                                
-                                if (!mainResponse) {
-                                    throw new Error('Did not retrieve a response');
-                                }
-        
-                                self._redirectedURL = mainResponse.url();
-                                self._httpStatusCode = mainResponse.status();
-        
-                                // self._redirectedURL = page.url();
-        
-                                // Note, page.evaluate() has its own DOM in its scope, but we must declare it here
-                                let evaluationData;
-                                // let window: any;
-                                let document: any;
-                                evaluationData = await page.evaluate(() => {
-                                    return {
-                                        // width: document.documentElement.clientWidth,
-                                        // height: document.documentElement.clientHeight,
-                                        // deviceScaleFactor: window.devicePixelRatio,
-                                        // url: window.location.href,
-                                        pageHTML: document.documentElement.outerHTML
-                                    };
-                                });
-                                self._pageHTML = evaluationData.pageHTML;
-        
-                                // Emit page evaluation event
-                                self._events.emit(Puppeteer.EVT_PAGE_EVALUATE);
+                            page = await browser.newPage();
 
-                                resolve();
-        
-                            } catch (err) {
-                                self._emitError(Puppeteer.EVT_ERROR, err);
-        
-                                self.terminate();
-                                
-                                reject();
+                            await page.emulate(self._getRandomDeviceName());
+    
+                            // Request interception is handled in page on "request" event handler
+                            page.setRequestInterception(true);
+    
+                            page.setJavaScriptEnabled(self._options.isJavaScriptEnabled);
+                            console.log('Set JS enabled value to:', self._options.isJavaScriptEnabled);
+    
+                            // Bind page events
+                            self._bindPageEvents(page);
+    
+                            const mainResponse: puppeteer.Response | null = await page.goto(self._url);
+                            
+                            if (!mainResponse) {
+                                throw new Error('Did not retrieve a response');
                             }
+    
+                            self._redirectedURL = mainResponse.url();
+                            self._httpStatusCode = mainResponse.status();
+    
+                            let document: any;
+                            let window: any;
+                            let evalData: IPuppeteerEval = await page.evaluate(() => {
+                                return {
+                                    userAgent: window.navigator.userAgent,
+                                    clientWidth: document.documentElement.clientWidth,
+                                    clientHeight: document.documentElement.clientHeight,
+                                    deviceScaleFactor: window.devicePixelRatio
+                                };
+                            });
+
+                            self._userAgent = evalData.userAgent;
+                            self._clientWidth = evalData.clientWidth;
+                            self._clientHeight = evalData.clientHeight;
+                            self._deviceScaleFactor = evalData.deviceScaleFactor;
+
+                            // Retrieves all the page content, including the DOCTYPE
+                            self._pageHTML = await page.content();
+    
+                            // Emit page evaluation event
+                            self._events.emit(Puppeteer.EVT_PAGE_EVALUATE);
+
+                            resolve();
         
                         }).catch((err) => {
                             self._emitError(Puppeteer.EVT_ERROR, err);
@@ -325,9 +354,12 @@ class Puppeteer {
 
                             reject();
                         });
-                })();
+                    })();
+                }
             } catch (err) {
                 self._emitError(Puppeteer.EVT_ERROR, err);
+
+                reject();
             }
         });
 
@@ -388,28 +420,15 @@ class Puppeteer {
             // For debugging
             let isToFulfill: boolean = true;
 
-            // const interceptedURL: string = request.url();
-
-            /*if (interceptedURL.endsWith('.js')) {
-                request.continue();
-            } else {
-                console.log('Blocking intercepted request URL: ' + interceptedURL);
-                request.abort();
-            }*/
-
-            /*if (request.url() === self._url ||
-                request.url() === self._redirectedURL) {
-                isToFulfill = true;
-                request.continue();
-            } else {
-                isToFulfill = false;
-                request.abort();
-            }*/
+            // Remove exposing request header
+            // @see https://github.com/GoogleChrome/puppeteer/issues/1229
+            const requestHeaders: puppeteer.Headers = request.headers();
+            delete requestHeaders['x-devtools-emulate-network-conditions-client-id'];
  
             const pageRequest: IPuppeteerPageRequest = {
                 url: request.url(),
                 method: request.method(),
-                headers: request.headers(),
+                headers: requestHeaders,
                 postData: request.postData(),
                 resourceType: request.resourceType(),
                 isToFulfill: isToFulfill
