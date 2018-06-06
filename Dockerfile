@@ -65,7 +65,8 @@ RUN bash -C ./finalize.sh
 USER pptruser
 
 # Test as the non-privleged user
-RUN yarn test
+# Note: The usage of --forceExit here is to keep the testing engine from preventing the rest of the build if it doesn't exit cleanly (yet has no errors)
+RUN yarn test --forceExit
 
 EXPOSE 8080
 
