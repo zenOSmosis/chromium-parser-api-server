@@ -2,6 +2,8 @@
 
 A Dockerized web parser, which serves a RESTful API with JSON for output.
 
+It is best suited for stripping out page elements which are not relevant to the reading material on pages it parses, as well as retrieving the published date of articles.
+
 Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) / [Chromium](https://github.com/chromium/chromium) and Mozilla's [Readability](https://github.com/mozilla/readability) filter.
 
 Forked from: https://github.com/alekzonder/docker-puppeteer
@@ -24,7 +26,9 @@ HTTP/1.1 200 OK
        "url": "http://example.com",
        "proxyHTTPStatusCode": 200,
        "fullHTML": "<div>...</div>",
+       "fullText": "Logo | Navigation | Hello world! Here's an ad for you!",
        "condensedHTML": "<div>...</div>",
+       "condensedText": "Hello world!",
        "author": "John Doe",
        "title": "My webpage"
        "iconURL": "http://example.com/favicon.ico",
