@@ -2,11 +2,16 @@
 
 A Dockerized web parser, which serves a RESTful API with JSON for output.
 
-Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) / [Chromium](https://github.com/chromium/chromium) and Mozilla's [Readability](https://github.com/mozilla/readability) filter.
+Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) / [Chromium](https://github.com/chromium/chromium) and parts of Mozilla's [Firefox](https://www.mozilla.org/firefox).
 
-Forked from: https://github.com/alekzonder/docker-puppeteer
-
-Note: So far this has been tested to work w/ Ubuntu 16.04 running Docker 18.03.1-ce 
+## Features
+- **Stealth Mode**:  The headless Chromium instance has been modified so it doesn't send headers which expose it is running as a headless instance, and it also randomly mimics different real-world device user agents, client width/heights, and scale factors, to make traffic appear like it is coming from real users.
+- **Readability Engine**: Pages are parsed using Mozilla's [Readability](https://github.com/mozilla/readability) engine, to grab the most important source material, without the ads.
+- **Metadata Parsing Engine**: Metadata, such as author, image preview, etc. are provided using Mozilla's  [Page Metatag Parser](https://github.com/mozilla/page-metadata-parser) library.
+- **Published Date Extraction**: Included algorithm is 90% accurate at identifying article published dates.
+- **Open Graph Coorelation**: Relation of pages to Facebook's [Open Graph Protocol](http://ogp.me).
+- **RESTful API**: Data output via a simple JSON data string.
+- **Documented and Tested**
 
 ## API Usage Example
 
@@ -33,7 +38,11 @@ HTTP/1.1 200 OK
        "description": "A great website",
        "keywords": "great, fun, website",
        "publishedDate": "2013-08-12 08:51:00",
-       "openGraphType": "website"
+       "openGraphType": "website",
+       "userAgent": "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%s Mobile Safari/537.36",
+       "clientWidth": 412,
+       "clientHeight": 732,
+       "deviceScaleFactor": 3.5
    }
     
 ```
