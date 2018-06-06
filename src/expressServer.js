@@ -10,7 +10,7 @@ import APIServer from './APIServer';
     expressServer.use('/docs/source', express.static('/app/docs/source'));
 })(expressServer);
 
-var apiServer = new APIServer(expressServer);
+new APIServer(expressServer);
 
 // Utilize gzip compression
 // @see https://expressjs.com/en/advanced/best-practice-performance.html
