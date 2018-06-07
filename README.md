@@ -26,7 +26,7 @@ The next course of action taken was to try to utilize Firefox or Chrome via a Se
 
 We finally settled on a Google project, Puppeteer, which controls their open-source web browser, Chromium, in a headless fashion.
 
-Being that it runs via a simple RESTful interface, it is simple to integrate into other projects with no special tooling required.
+Being that this project exposes a simple controller interface via a simple RESTful API, it is simple to integrate into other projects with no special tooling required.
 
 ## API Usage Example
 
