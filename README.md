@@ -1,11 +1,11 @@
 # Chromium Parser API Server
 
-A Dockerized web parser, which serves a RESTful API with JSON for output.
+A Dockerized web parser, utilizing Google [Chromium](https://github.com/chromium/chromium) browser (via [Puppeteer](https://github.com/GoogleChrome/puppeteer)) and parts of Mozilla's [Firefox](https://www.mozilla.org/firefox), which serves a RESTful API with a JSON interface.
 
-Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) / [Chromium](https://github.com/chromium/chromium) and parts of Mozilla's [Firefox](https://www.mozilla.org/firefox).
+Note, this package installs Chromium in the container itself and neither Chromium or Firefox need to be installed on the host system.
 
 ## Features
-- **Stealth Mode**:  Traffic from this engine mimic real-world devices in order help  fool automation detection algorithms.  The headless Chromium instance has been modified so it doesn't send headers which expose it is running as a headless instance, and it also randomly mimics different real-world device user agents, client width/heights, and scale factors, to make traffic appear like it is coming from real users.
+- **Stealth Mode**:  Traffic from this engine mimic real-world devices in order help fool automation detection algorithms.  The headless Chromium instance has been modified so it doesn't send headers which expose it is running as a headless instance, and it also randomly mimics different real-world device user agents, client width/heights, and scale factors, to make traffic appear like it is coming from real users.
 - **Readability Engine**: Pages are parsed using Mozilla's [Readability](https://github.com/mozilla/readability) engine, to grab the most important source material, without the ads.
 - **Metadata Parsing Engine**: Metadata, such as author, image preview, etc. are provided using Mozilla's  [Page Metatag Parser](https://github.com/mozilla/page-metadata-parser) library.
 - **Published Date Extraction**: Included algorithm is 90% accurate at identifying article published dates.
@@ -14,12 +14,26 @@ Built on top of Google's [Puppeteer](https://github.com/GoogleChrome/puppeteer) 
 - **RESTful API**: Data output via a simple JSON data string, using gzip compression for minimal latency.
 - **Documented and Tested**
 
+## Motivation
+
+We needed to build a tool in order to effectively lift information from web pages, in a rapid fashion, having it completely controlled via an API, with the ability to categorize web content.  It is not intended to "steal" information from the pages, themselves, instead it's intended to be utilized to provide supplemental information on top of search results from other projects.
+
+We feel that websites and content authors should not try to "hide" from such a system; they should, in fact, welcome it to look at their content, in order to help search users make informed decisions on whether to proceed to view the original content on the original website, or not.
+
+This project originally began as a PhantomJS controller, however, being that PhantomJS is no longer being maintained we felt the reason to move on to another system.
+
+The next course of action taken was to try to utilize Firefox or Chrome via a Selenium / WebDriver appproach, but it seemed too limiting for our needs (e.g. no ability to view received headers), slow, and unstable (e.g. running multiple requests in parallel, on a single system, would often crash the system or result in failed responses).
+
+We finally settled on a Google project, Puppeteer, which controls their open-source web browser, Chromium, in a headless fashion.
+
+Being that it runs via a simple RESTful interface, it is simple to integrate into other projects with no special tooling required.
+
 ## API Usage Example
 
 From your web browser, navigate to the following URL:
 
 ```
-http://localhost:8080?url=https://example.com&jsEnabled=false
+http://localhost:8080?url=https://example.com&jsEnabled=0
 ```
 
 ### Example Output
