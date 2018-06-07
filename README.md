@@ -98,7 +98,7 @@ This project is mostly based in TypeScript, and uses Node.js with Express to ser
 
 #### Launching Development API Server
 
-This will mount the host's source code into the container's /app directory, give you root privilges to the container, and open a bash prompt at /app.
+This will mount the host's source code into the container's /app directory, give you root privileges to the container, and open a bash prompt at /app.
 
 API in this example utilizes port 8080 on the host.
 
