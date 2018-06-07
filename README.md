@@ -112,7 +112,7 @@ Note, unless otherwise specified, all future shell commands in this section refe
 
 #### Enabling "Monitor Mode"
 
-This command watches the project for changes and automatically lints and compiles it on updated changes, automatically generates new documentation for the source code and the API, and launches the API server.
+This command watches the project for changes and automatically performs code linting and compilation on updated changes, generates new documentation for the source code and the API, and launches the API server.
 
 ```
 yarn monitor
