@@ -14,20 +14,6 @@ Note, this package installs Chromium in the container itself and neither Chromiu
 - **RESTful API**: Data output via a simple JSON data string, using gzip compression for minimal latency.
 - **Documented and Tested**
 
-## Motivation
-
-We needed to build a tool in order to effectively lift information from web pages, in a rapid fashion, having it completely controlled via an API, with the ability to categorize web content.  It is not intended to "steal" information from the pages, themselves, instead it's intended to be utilized to provide supplemental information on top of search results from other projects.
-
-We feel that websites and content authors should not try to "hide" from such a system; they should, in fact, welcome it to look at their content, in order to help search users make informed decisions on whether to proceed to view the original content on the original website, or not.
-
-This project originally began as a PhantomJS controller, however, being that PhantomJS is no longer being maintained we felt the reason to move on to another system.
-
-The next course of action taken was to try to utilize Firefox or Chrome via a Selenium / WebDriver appproach, but it seemed too limiting for our needs (e.g. no ability to view received headers), slow, and unstable (e.g. running multiple requests in parallel, on a single system, would often crash the system or result in failed responses).
-
-We finally settled on a Google project, Puppeteer, which controls their open-source web browser, Chromium, in a headless fashion.
-
-Being that this project exposes a simple controller interface via a RESTful API, it is easy to integrate into other projects with no special tooling required.
-
 ## API Usage Example
 
 From your web browser, navigate to the following URL:
@@ -208,6 +194,20 @@ const puppeteer = require('puppeteer');
     ]});
 
 ```
+
+## Motivation
+
+We needed to build a tool in order to effectively lift information from web pages, in a rapid fashion, having it completely controlled via an API, with the ability to categorize web content.  It is not intended to "steal" information from the pages, themselves, instead it's intended to be utilized to provide supplemental information on top of search results from other projects.
+
+We feel that websites and content authors should not try to "hide" from such a system; they should, in fact, welcome it to look at their content, in order to help search users make informed decisions on whether to proceed to view the original content on the original website, or not.
+
+This project originally began as a PhantomJS controller, however, being that PhantomJS is no longer being maintained we felt the reason to move on to another system.
+
+The next course of action taken was to try to utilize Firefox or Chrome via a Selenium / WebDriver appproach, but it seemed too limiting for our needs (e.g. no ability to view received headers), slow, and unstable (e.g. running multiple requests in parallel, on a single system, would often crash the system or result in failed responses).
+
+We finally settled on a Google project, Puppeteer, which controls their open-source web browser, Chromium, in a headless fashion.
+
+Being that this project exposes a simple controller interface via a RESTful API, it is easy to integrate into other projects with no special tooling required.
 
 ## Acknowledgements
 
